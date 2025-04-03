@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		390A37852D96E8EF002404D9 /* CoT2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390A37842D96E8EF002404D9 /* CoT2.swift */; };
 		390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390A37862D96EA7C002404D9 /* CoT2VC.swift */; };
+		391DF0AC2D9E070A0082D515 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */; };
+		391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 391DF0AD2D9E07240082D515 /* Ask_Lila.xcdatamodeld */; };
 		3962569C2D89365400ECCF68 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3962569B2D89365400ECCF68 /* GoogleSignInSwift */; };
 		396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256A92D89F23100ECCF68 /* LoginVC.swift */; };
 		396256B72D89F23300ECCF68 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AA2D89F23100ECCF68 /* Config.swift */; };
@@ -24,11 +26,9 @@
 		396256D32D89F23E00ECCF68 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 396256C62D89F23E00ECCF68 /* Assets.xcassets */; };
 		396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256C72D89F23E00ECCF68 /* AboutVC.swift */; };
 		396256D52D89F23E00ECCF68 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256C82D89F23E00ECCF68 /* AppCoordinator.swift */; };
-		396256D62D89F23E00ECCF68 /* Ask_Lila.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 396256CC2D89F23E00ECCF68 /* Ask_Lila.xcdatamodeld */; };
 		396256D72D89F23E00ECCF68 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256CF2D89F23E00ECCF68 /* AIService.swift */; };
 		396256D92D89F4E700ECCF68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 396256D82D89F4E700ECCF68 /* Main.storyboard */; };
 		396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EEFEE2D98CE4D000AED12 /* manager.swift */; };
-		396EEFF12D98E23A000AED12 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 396EEFF02D98E23A000AED12 /* GoogleService-Info.plist */; };
 		396EEFF32D98FFA5000AED12 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 396EEFF22D98FFA5000AED12 /* FirebaseAuthCombine-Community */; };
 		3994408B2D88BB4C00BB0429 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 3994408A2D88BB4C00BB0429 /* Base */; };
 		399440962D88BB4D00BB0429 /* Ask_LilaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399440952D88BB4D00BB0429 /* Ask_LilaTests.swift */; };
@@ -86,6 +86,9 @@
 /* Begin PBXFileReference section */
 		390A37842D96E8EF002404D9 /* CoT2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoT2.swift; sourceTree = "<group>"; };
 		390A37862D96EA7C002404D9 /* CoT2VC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoT2VC.swift; sourceTree = "<group>"; };
+		391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		391DF0AE2D9E07240082D515 /* Ask_Lila.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ask_Lila.xcdatamodel; sourceTree = "<group>"; };
+		391DF0B02D9E072F0082D515 /* Ask Lila.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Ask Lila.entitlements"; sourceTree = "<group>"; };
 		396256A92D89F23100ECCF68 /* LoginVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
 		396256AA2D89F23100ECCF68 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		396256AB2D89F23200ECCF68 /* Files.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
@@ -101,12 +104,9 @@
 		396256C62D89F23E00ECCF68 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		396256C72D89F23E00ECCF68 /* AboutVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutVC.swift; sourceTree = "<group>"; };
 		396256C82D89F23E00ECCF68 /* AppCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
-		396256CD2D89F23E00ECCF68 /* Ask_Lila.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ask_Lila.xcdatamodel; sourceTree = "<group>"; };
-		396256CE2D89F23E00ECCF68 /* Ask Lila.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = "Ask Lila.entitlements"; sourceTree = "<group>"; };
 		396256CF2D89F23E00ECCF68 /* AIService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		396256D82D89F4E700ECCF68 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		396EEFEE2D98CE4D000AED12 /* manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = manager.swift; sourceTree = "<group>"; };
-		396EEFF02D98E23A000AED12 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		399440782D88BB4B00BB0429 /* Ask Lila.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Ask Lila.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3994408A2D88BB4C00BB0429 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		399440912D88BB4D00BB0429 /* Ask LilaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Ask LilaTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -205,12 +205,12 @@
 				396256AA2D89F23100ECCF68 /* Config.swift */,
 				396256B02D89F23200ECCF68 /* EditChart.swift */,
 				396256AB2D89F23200ECCF68 /* Files.swift */,
-				396EEFF02D98E23A000AED12 /* GoogleService-Info.plist */,
 				396256C32D89F23E00ECCF68 /* AppDelegate.swift */,
+				391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */,
 				396256B52D89F23300ECCF68 /* SceneDelegate.swift */,
-				396256CE2D89F23E00ECCF68 /* Ask Lila.entitlements */,
-				396256CC2D89F23E00ECCF68 /* Ask_Lila.xcdatamodeld */,
+				391DF0B02D9E072F0082D515 /* Ask Lila.entitlements */,
 				39CC1F8D2D9DD08400615B2E /* AstrologServiceManager.swift */,
+				391DF0AD2D9E07240082D515 /* Ask_Lila.xcdatamodeld */,
 				39AF9E962D9B6A3100765A38 /* Question Migration .swift */,
 				39AF9E9C2D9C6C4400765A38 /* ConversationLogger.swift */,
 				390A37842D96E8EF002404D9 /* CoT2.swift */,
@@ -384,11 +384,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				396EEFF12D98E23A000AED12 /* GoogleService-Info.plist in Resources */,
 				396256D22D89F23E00ECCF68 /* Base.lproj in Resources */,
 				396256D92D89F4E700ECCF68 /* Main.storyboard in Resources */,
 				3994408B2D88BB4C00BB0429 /* Base in Resources */,
 				396256D32D89F23E00ECCF68 /* Assets.xcassets in Resources */,
+				391DF0AC2D9E070A0082D515 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,9 +416,9 @@
 				39CC1F922D9DD90400615B2E /* ViewController.swift in Sources */,
 				396256BE2D89F23300ECCF68 /* PartnerViewController.swift in Sources */,
 				396256B72D89F23300ECCF68 /* Config.swift in Sources */,
+				391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */,
 				39AF9E972D9B6A3100765A38 /* Question Migration .swift in Sources */,
 				396256D02D89F23E00ECCF68 /* AppDelegate.swift in Sources */,
-				396256D62D89F23E00ECCF68 /* Ask_Lila.xcdatamodeld in Sources */,
 				396256C02D89F23300ECCF68 /* SubscriptionManager.swift in Sources */,
 				39CC1F902D9DD7EE00615B2E /* AskLilaView.swift in Sources */,
 				390A37852D96E8EF002404D9 /* CoT2.swift in Sources */,
@@ -932,12 +932,12 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		396256CC2D89F23E00ECCF68 /* Ask_Lila.xcdatamodeld */ = {
+		391DF0AD2D9E07240082D515 /* Ask_Lila.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				396256CD2D89F23E00ECCF68 /* Ask_Lila.xcdatamodel */,
+				391DF0AE2D9E07240082D515 /* Ask_Lila.xcdatamodel */,
 			);
-			currentVersion = 396256CD2D89F23E00ECCF68 /* Ask_Lila.xcdatamodel */;
+			currentVersion = 391DF0AE2D9E07240082D515 /* Ask_Lila.xcdatamodel */;
 			path = Ask_Lila.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

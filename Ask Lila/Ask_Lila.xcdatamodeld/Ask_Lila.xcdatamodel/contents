@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23787" systemVersion="24D81" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="AnalyticsEventEntity" representedClassName="AnalyticsEventEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="eventName" optional="YES" attributeType="String"/>
+        <attribute name="parameters" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="AstroChartDataEntity" representedClassName="AstroChartDataEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="birthMoment" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="birthPlace" optional="YES" attributeType="String"/>
+        <attribute name="dateEntered" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="houseHDScore" optional="YES" attributeType="String"/>
+        <attribute name="houseScore" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="natalMoonPhase" optional="YES" attributeType="String"/>
+        <attribute name="planetHDScore" optional="YES" attributeType="String"/>
+        <attribute name="planetScore" optional="YES" attributeType="String"/>
+        <attribute name="sex" optional="YES" attributeType="String"/>
+        <attribute name="signHDScore" optional="YES" attributeType="String"/>
+        <attribute name="signScore" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="ChartEntity" representedClassName="ChartEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="birthDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="birthPlace" optional="YES" attributeType="String"/>
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="chartID" optional="YES" attributeType="String"/>
+        <attribute name="dateAdded" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isShared" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="mostDiscordantPlanet" optional="YES" attributeType="String"/>
+        <attribute name="mostDiscordantPlanetArchetype" optional="YES" attributeType="String"/>
+        <attribute name="mostHarmoniousPlanet" optional="YES" attributeType="String"/>
+        <attribute name="mostHarmoniousPlanetArchetype" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="sentenceText" optional="YES" attributeType="String"/>
+        <attribute name="setName" optional="YES" attributeType="String"/>
+        <attribute name="sex" optional="YES" attributeType="String"/>
+        <attribute name="strongestPlanet" optional="YES" attributeType="String"/>
+        <attribute name="strongestPlanetArchetype" optional="YES" attributeType="String"/>
+        <attribute name="strongestPlanetSign" optional="YES" attributeType="String"/>
+        <attribute name="subCategory" optional="YES" attributeType="String"/>
+        <attribute name="timeZoneIdentifier" optional="YES" attributeType="String"/>
+        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="UserEntity" inverseName="charts" inverseEntity="UserEntity"/>
+    </entity>
+    <entity name="ConversationMemory" representedClassName="ConversationMemory" syncable="YES" codeGenerationType="class">
+        <attribute name="attribute" optional="YES" attributeType="String"/>
+        <attribute name="content" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="role" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="displayName" optional="YES" attributeType="String"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="lastLoginDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="profileImageURL" optional="YES" attributeType="String"/>
+        <attribute name="userId" optional="YES" attributeType="String"/>
+        <relationship name="charts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChartEntity" inverseName="user" inverseEntity="ChartEntity"/>
+    </entity>
+    <entity name="UserProfileEntity" representedClassName="UserProfileEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="ascendant" optional="YES" attributeType="String"/>
+        <attribute name="ascendantArchetype" optional="YES" attributeType="String"/>
+        <attribute name="bio" optional="YES" attributeType="String"/>
+        <attribute name="birthDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="displayName" optional="YES" attributeType="String"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="moon" optional="YES" attributeType="String"/>
+        <attribute name="moonArchetype" optional="YES" attributeType="String"/>
+        <attribute name="role" optional="YES" attributeType="String"/>
+        <attribute name="sentence" optional="YES" attributeType="String"/>
+        <attribute name="strongestAspects" optional="YES" attributeType="String"/>
+        <attribute name="strongestPlanet" optional="YES" attributeType="String"/>
+        <attribute name="strongestPlanetArchetype" optional="YES" attributeType="String"/>
+        <attribute name="strongestPlanetSignArchetype" optional="YES" attributeType="String"/>
+        <attribute name="sun" optional="YES" attributeType="String"/>
+        <attribute name="sunArchetype" optional="YES" attributeType="String"/>
+        <attribute name="uid" optional="YES" attributeType="String"/>
+    </entity>
+</model>
