@@ -107,7 +107,7 @@ class CoTAnalysisViewController: UIViewController {
     }
 
    
-    func buildUserChartProfile(from cake: ChartCake) -> UserChartProfile {
+    func buildUserChartProfile(from cake: ChartCake) -> MyUserChartProfile {
         let natal = cake.natal
         let aspectsScores = natal.allCelestialAspectScoresByAspect()
 
@@ -144,7 +144,7 @@ class CoTAnalysisViewController: UIViewController {
 
         
 
-        return UserChartProfile(
+        return MyUserChartProfile(
             name: cake.name,
             birthDate: natal.birthDate,
             sex: cake.sex,

@@ -36,6 +36,7 @@ class MyAgentChatController: UIViewController {
     private var currentConversationId: String?
     private var chartSummaryContext: String?
     private var useSuperchargedAgent = UserDefaults.standard.bool(forKey: "useSuperchargedAgent")
+    var userChart: UserChartProfile!
 
 
     // UI Elements
@@ -168,7 +169,7 @@ class MyAgentChatController: UIViewController {
         let aiIcon = UIImage(systemName: "brain.head.profile") // AI service icon
         let gearIcon = UIImage(systemName: "gearshape") // Settings/edit icon
         let storyIcon = UIImage(systemName: "book.pages") // Story icon
-      //  let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal") // Astro-stats icon
+        let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal") // Astro-stats icon
         
         let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
         let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
@@ -179,11 +180,11 @@ class MyAgentChatController: UIViewController {
         let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
         let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
         let showStoryButton = UIBarButtonItem(image: storyIcon, style: .plain, target: self, action: #selector(showSouthNodeStoryTapped))
-    //    let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
+       let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
 
         // Add all buttons to the right side of the navigation bar
         navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton,  showStoryButton]
-        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton]
+        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton,showStatsButton]
         // Add badge or indicator showing current AI service
         updateAIServiceIndicator()
     }
@@ -410,7 +411,18 @@ class MyAgentChatController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
+    func topAspects(chartCake: ChartCake,
+        to planet: CelestialObject,
+        in aspectsScores: [CelestialAspect: Double],
+        limit: Int = 2
+    ) -> [NatalAspectScore] {
+        let sorted = chartCake.natal
+            .filterAndFormatNatalAspects(by: planet, aspectsScores: aspectsScores)
+            .sorted { $0.value > $1.value }  // Explicit sort for clarity
 
+        return sorted.prefix(limit)
+            .map { NatalAspectScore(aspect: $0.key, score: $0.value) }
+    }
 
     private func scrollToBottom() {
         guard chatTableView.numberOfSections > 0 else { return }
@@ -421,17 +433,107 @@ class MyAgentChatController: UIViewController {
             chatTableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
         }
     }
-   
-    @objc private func showStatsTapped() {
-        let storyVC = CoTAnalysisViewController()
-        storyVC.chartCake = transitChartCake ?? chartCake
-        storyVC.lilaViewController = self
-        
-        let navController = UINavigationController(rootViewController: storyVC)
-        present(navController, animated: true)
-        
-        addSystemMessage("📊 Here's a deep dive into your astro-stats — including your planetary strength, balance, and patterns shaping your chart.")
+    func buildUserChartProfile(from cake: ChartCake) -> UserChartProfile {
+        let natal = cake.natal
+        let aspectsScores = natal.allCelestialAspectScoresByAspect()
+
+        let strongest = cake.strongestPlanet
+        let strongestCoord = natal.planets.first { $0.body == strongest } ?? natal.sun
+        let strongestHouse = natal.houseCusps.house(of: strongestCoord).number
+        let ruledHouses = natal.houseCusps
+            .influencedCoordinatesHouses(for: strongestCoord)
+            .map { $0.number }
+            .filter { $0 != strongestHouse }
+
+        let sunHouse = natal.houseCusps.house(of: natal.sun).number
+        let moonHouse = natal.houseCusps.house(of: natal.moon).number
+        let mercury = natal.planets.first(where: { $0.body == cake.natal.mercury.body })!
+        let mercuryHouse = natal.houseCusps.house(of: mercury).number
+
+        let ascSign = natal.ascendantCoordinate.sign
+        let ascRulers = natal.houseCusps.customRulersForAllCusps()
+            .filter { $0.key.number == 1 }
+            .flatMap { $0.value }
+
+        let ascRulerCoordinates: [Coordinate] = ascRulers.compactMap { ruler in
+            natal.planets.first(where: { $0.body == ruler })
+        }
+
+        let ascRulerHouses: [Int] = ascRulerCoordinates.map { natal.houseCusps.house(of: $0).number }
+        let ascRulerSigns: [Zodiac] = ascRulerCoordinates.map { $0.sign }
+
+        let ascRulerAspects: [NatalAspectScore] = ascRulers.flatMap {
+            topAspects(chartCake: cake, to: $0, in: aspectsScores)
+        }
+
+        let sunPower = cake.planetScores[natal.sun.body] ?? 0.0
+        let moonPower = cake.planetScores[natal.moon.body] ?? 0.0
+        let ascendantPower = cake.planetScores[natal.ascendantCoordinate.body] ?? 0.0
+        let ascendantRulerPowers = ascRulers.map { cake.planetScores[$0] ?? 0.0 }
+
+        return UserChartProfile(
+            name: cake.name ?? "Unnamed",
+            birthDate: natal.birthDate,
+            sex: cake.sex,
+
+            strongestPlanet: strongest,
+            strongestPlanetSign: cake.strongestPlanetSignSN,
+            strongestPlanetHouse: strongestHouse,
+            strongestPlanetRuledHouses: ruledHouses,
+
+            sunSign: natal.sun.sign,
+            sunHouse: sunHouse,
+            sunPower: sunPower,
+            topAspectsToSun: topAspects(chartCake: cake, to: natal.sun.body, in: aspectsScores),
+
+            moonSign: natal.moon.sign,
+            moonHouse: moonHouse,
+            moonPower: moonPower,
+            topAspectsToMoon: topAspects(chartCake: cake, to: natal.moon.body, in: aspectsScores),
+
+            ascendantSign: ascSign,
+            ascendantPower: ascendantPower,
+            topAspectsToAscendant: topAspects(chartCake: cake, to: natal.ascendantCoordinate.body, in: aspectsScores),
+
+            mercurySign: mercury.sign,
+            mercuryHouse: mercuryHouse,
+
+            ascendantRulerSigns: ascRulerSigns,
+            ascendantRulers: ascRulers,
+            ascendantRulerHouses: ascRulerHouses,
+            ascendantRulerPowers: ascendantRulerPowers,
+            topAspectsToAscendantRulers: ascRulerAspects,
+
+            dominantHouseScores: cake.houseScoresSN,
+            dominantSignScores: cake.signScoresSN,
+            dominantPlanetScores: cake.planetScoresSN,
+
+            mostHarmoniousPlanet: cake.mostHarmoniousPlanetSN,
+            mostDiscordantPlanet: cake.mostDiscordantPlanetSN,
+            topAspectsToStrongestPlanet: topAspects(chartCake: cake, to: strongest, in: aspectsScores)
+        )
     }
+
+
+    @objc private func showStatsTapped() {
+        guard let chart = chartCake else {
+            addSystemMessage("⚠️ No chart available to analyze.")
+            return
+        }
+
+        // 🌱 Step 1: Build the full chart profile (the input for all soul work)
+        let fullProfile = buildUserChartProfile(from: chart)
+
+        // 🌿 Step 2: Initialize the chat and pass in this core profile
+        let soulChatVC = SoulChatViewController()
+        soulChatVC.userChart = fullProfile // ✅ Now correct type
+
+        let navController = UINavigationController(rootViewController: soulChatVC)
+        present(navController, animated: true)
+
+        addSystemMessage("📊 Here's a deep dive into your astro-soul story — including your evolutionary tone, learning arenas, and your radiant path.")
+    }
+
 
     
     @objc private func editChartTapped() {

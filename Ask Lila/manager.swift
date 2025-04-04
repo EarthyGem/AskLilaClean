@@ -20,6 +20,10 @@ import CoreData
 import Foundation
 import CoreData
 
+struct AIResponse: Codable {
+    let reply: String
+}
+
 class LilaMemoryManager {
     static let shared = LilaMemoryManager()
 
@@ -259,6 +263,34 @@ import FirebaseAuth
 class LilaAgentManager {
     // Singleton instance
     static let shared = LilaAgentManager()
+
+        func sendSoulGuidedMessage(prompt: String, completion: @escaping (String?) -> Void) {
+            let url = URL(string: "https://your-llm-server/api/v1/ask-lila")! // Adjust accordingly
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+
+            let payload = [
+                "prompt": prompt,
+                "temperature": 0.7,
+                "max_tokens": 600
+            ] as [String : Any]
+
+            request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            URLSession.shared.dataTask(with: request) { data, _, error in
+                if let data = data, let response = try? JSONDecoder().decode(AIResponse.self, from: data) {
+                    completion(response.reply)
+                } else {
+                    print("❌ AI Error: \(error?.localizedDescription ?? "Unknown error")")
+                    completion(nil)
+                }
+            }.resume()
+        }
+    
+
+    
+    
     private func logConversationToFirestore(userPrompt: String, aiResponse: String, readingType: String) {
         guard let userId = Auth.auth().currentUser?.uid else { return }
 
@@ -565,6 +597,48 @@ class LilaAgentManager {
             }
         }
     }
+    func toneAdjustedResponse(
+        userInput: String,
+        core: UserCoreChartProfile,
+        soul: SoulValuesProfile,
+        tone: AlchemicalToneProfile
+    ) -> String {
+        return """
+    🜁 You are a soul-reflective assistant aligned with the 7-Lesson Personal Alchemy philosophy.
+
+    Speak from presence. See the user not as a fixed type, but as a soul in refinement.
+
+    --- CHART TRUTH FILTER ---
+
+    • 🜂 Strongest Planet: \(core.strongestPlanet.keyName) in \(core.strongestPlanetSign.rawValue), House \(core.strongestPlanetHouse)
+       → Support refinement of: \(tone.soulFunction)
+
+    • 🌙 Moon: \(core.moonSign.rawValue), House \(core.moonHouse)
+       → Nurture in a way that: \(soul.blossomingConditions)
+
+    • ☿ Mercury: \(core.mercurySign.rawValue), House \(core.mercuryHouse)
+       → Speak in a tone that honors: \(soul.communicationMode)
+
+    • ☉ Sun: \(core.sunSign.rawValue), House \(core.sunHouse)
+       → Encourage radiance by: \(soul.radiancePath)
+
+    • 🏠 Life Arena: \(tone.developmentArena)
+    • 🎭 Emotional Climate: \(tone.preferredReception)
+    • 🧠 Metaphoric Style: \(tone.symbolicVoiceTone ?? "natural language rooted in personal metaphor")
+
+    --- PHILOSOPHICAL GUIDEPOSTS ---
+
+    This soul is not broken—they are becoming.  
+    Every event is an initiatory moment. Every tension is a refinement chamber.  
+    Respond with warmth, alchemical curiosity, and a reverent tone.  
+    Never diagnose. Always mirror truth through the lens of loving evolution.
+
+    --- USER INPUT ---
+    \(userInput)
+
+    --- YOUR RESPONSE (soul-aligned, chart-aware) ---
+    """
+    }
 
 
     // MARK: - New Implementati
@@ -832,10 +906,44 @@ protocol AIServiceDelegate: AnyObject {
     func didSelectAIService()
 }
 //
-//  AIServiceController.swift
-//  AstroLogic
-//
-//  Created by Errick Williams on 3/2/25.
+struct MyUserChartProfile {
+    let name: String
+    let birthDate: Date
+    let sex: ChartCake.Sex
+
+    let strongestPlanet: CelestialObject
+    let strongestPlanetSign: Zodiac
+    let strongestPlanetHouse: Int
+    let strongestPlanetRuledHouses: [Int]
+
+    let sunSign: Zodiac
+    let sunHouse: Int
+    let sunPower: Double
+
+    let moonSign: Zodiac
+    let moonHouse: Int
+    let moonPower: Double
+
+    let ascendantSign: Zodiac
+    let ascendantPower: Double
+    let ascendantRulerSigns: [Zodiac]
+    let ascendantRulers: [CelestialObject]
+    let ascendantRulerHouses: [Int]
+    let ascendantRulerPowers: [Double]
+   
+
+    let dominantHouseScores: [Int: Double]
+    let dominantSignScores: [Zodiac: Double]
+    let dominantPlanetScores: [CelestialObject: Double]
+
+    let mostHarmoniousPlanet: CelestialObject
+    let mostDiscordantPlanet: CelestialObject
+
+    let topAspectsToStrongestPlanet: [NatalAspectScore]
+    let topAspectsToMoon: [NatalAspectScore]
+    let topAspectsToAscendant: [NatalAspectScore]
+    let topAspectsToAscendantRulers: [NatalAspectScore]
+}
 
 import Foundation
 import SwiftEphemeris
@@ -1056,7 +1164,7 @@ enum ReadingType: String {
 class AgentPromptBuilder {
     
     var cake: ChartCake!
-     func buildUserChartProfile(from cake: ChartCake) -> UserChartProfile {
+     func buildUserChartProfile(from cake: ChartCake) -> MyUserChartProfile {
          let natal = cake.natal
          let aspectsScores = natal.allCelestialAspectScoresByAspect()
 
@@ -1093,7 +1201,7 @@ class AgentPromptBuilder {
 
          
 
-         return UserChartProfile(
+         return MyUserChartProfile(
              name: cake.name,
              birthDate: natal.birthDate,
              sex: cake.sex,

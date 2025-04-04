@@ -8,44 +8,6 @@
 import Foundation
 import SwiftEphemeris
 
-struct UserChartProfile {
-    let name: String
-    let birthDate: Date
-    let sex: ChartCake.Sex
-
-    let strongestPlanet: CelestialObject
-    let strongestPlanetSign: Zodiac
-    let strongestPlanetHouse: Int
-    let strongestPlanetRuledHouses: [Int]
-
-    let sunSign: Zodiac
-    let sunHouse: Int
-    let sunPower: Double
-
-    let moonSign: Zodiac
-    let moonHouse: Int
-    let moonPower: Double
-
-    let ascendantSign: Zodiac
-    let ascendantPower: Double
-    let ascendantRulerSigns: [Zodiac]
-    let ascendantRulers: [CelestialObject]
-    let ascendantRulerHouses: [Int]
-    let ascendantRulerPowers: [Double]
-   
-
-    let dominantHouseScores: [Int: Double]
-    let dominantSignScores: [Zodiac: Double]
-    let dominantPlanetScores: [CelestialObject: Double]
-
-    let mostHarmoniousPlanet: CelestialObject
-    let mostDiscordantPlanet: CelestialObject
-
-    let topAspectsToStrongestPlanet: [NatalAspectScore]
-    let topAspectsToMoon: [NatalAspectScore]
-    let topAspectsToAscendant: [NatalAspectScore]
-    let topAspectsToAscendantRulers: [NatalAspectScore]
-}
 
 
 struct NatalAspectScore {
@@ -705,7 +667,7 @@ class SynastryBuilder {
     }
 }
 struct NatalPromptGenerator {
-    static func generatePrompt(from profile: UserChartProfile) -> String {
+    static func generatePrompt(from profile: MyUserChartProfile) -> String {
         var prompt = "You are a wise, friend who is a master of evolutionary astrology. Who, unlike most convential astrologers knows the most powerful thing in a chart is the strongest planet. You know your job is to help your friend see themeslevs more clearly. Youre favorite lines from your mentor and Teacher Steven Forrest are: the real purpose of astrology: to hold a mirror before the evolving self, to tell us what we already know deep within ourselves. Through astrology we fly far above the mass of details that constitutes our lives. We stand outside our personalities and see for a moment the central core of individuality around which all the minutiae must always orbit. This is how you assist your friend  \(profile.name ?? "User").\n\n"
         
         prompt += "**Name**: \(profile.name ?? "User")\n"
