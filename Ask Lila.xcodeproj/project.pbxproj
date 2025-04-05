@@ -202,11 +202,11 @@
 			isa = PBXGroup;
 			children = (
 				39CC1F8F2D9DD7EE00615B2E /* AskLilaView.swift */,
+				39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */,
 				396EEFEE2D98CE4D000AED12 /* manager.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
-				39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */,
 				396256C82D89F23E00ECCF68 /* AppCoordinator.swift */,
 				396256AA2D89F23100ECCF68 /* Config.swift */,
 				396256B02D89F23200ECCF68 /* EditChart.swift */,

@@ -29,7 +29,7 @@ class SoulChatViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         title = "Chat with Lila 🌿"
-
+        setupKeyboardNotifications()
         setupUI()
         generateProfiles()
 
@@ -78,8 +78,61 @@ class SoulChatViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: inputTextView.topAnchor, constant: -8)
         ])
+        
+        // Add tap gesture recognizer to dismiss keyboard when tapping outside the text field
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        tableView.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
+              let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
+        else { return }
+
+        let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+
+        UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
+            // Reset the constraint
+            self.view.constraints.first(where: { $0.firstAttribute == .bottom && $0.firstItem is UIView })?.constant = 0
+
+            self.view.layoutIfNeeded()
+            self.tableView.contentInset.bottom = 0
+            self.tableView.scrollIndicatorInsets.bottom = 0
+        }
+    }
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
 
+    // MARK: - Keyboard Handling
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+@objc private func keyboardWillShow(_ notification: Notification) {
+    guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+          let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
+          let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
+    else { return }
+
+    let keyboardHeight = keyboardFrame.height
+    let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+
+    // Calculate the bottom constraint value
+    let bottomConstant = keyboardHeight - view.safeAreaInsets.bottom
+
+    UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
+        // Update the constraint to adjust for keyboard height
+        // Assuming you've stored this constraint as a property - you'll need to add this
+        self.view.constraints.first(where: { $0.firstAttribute == .bottom && $0.firstItem is UIView })?.constant = -bottomConstant
+
+        self.view.layoutIfNeeded()
+        self.tableView.contentInset.bottom = 0
+        self.tableView.scrollIndicatorInsets.bottom = 0
+        self.scrollToBottom()
+    }
+}
     @objc private func sendTapped() {
         guard let text = inputTextView.text, !text.isEmpty else { return }
         messages.append((text, true))
