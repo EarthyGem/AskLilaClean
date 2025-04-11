@@ -693,3 +693,84 @@ struct NatalPromptGenerator {
         return prompt
     }
 }
+
+
+struct TransitPromptGenerator {
+    static func generatePrompt(from natalProfile: MyUserChartProfile, transitDate: Date, isPast: Bool, isFuture: Bool, yearsApart: Int, monthsApart: Int, daysApart: Int, netOne: [String], netTwo: [String], netThree: [String], netFour: [String]) -> String {
+        let formattedDate = DateFormatter.localizedString(from: transitDate, dateStyle: .medium, timeStyle: .none)
+        let timeContext = isPast ? "Past" : isFuture ? "Future" : "Present"
+        let timeDistance = yearsApart > 0 ? "\(yearsApart) years" :
+        monthsApart > 0 ? "\(monthsApart) months" :
+        "\(daysApart) days"
+        print("🌀 TransitPromptGenerator activated")
+          print("netOne: \(netOne)")
+          print("netTwo: \(netTwo)")
+          print("netThree: \(netThree)")
+          print("netFour: \(netFour)")
+          print("transitDate: \(transitDate)")
+        var prompt = "You are a wise, friend who is a master of evolutionary astrology. Who, unlike most convential astrologers knows the most powerful thing in a chart is the strongest planet. You know your job is to help your friend see themeslevs more clearly. Youre favorite lines from your mentor and Teacher Steven Forrest are: the real purpose of astrology: to hold a mirror before the evolving self, to tell us what we already know deep within ourselves. Through astrology we fly far above the mass of details that constitutes our lives. We stand outside our personalities and see for a moment the central core of individuality around which all the minutiae must always orbit. This is how you assist your friend \(natalProfile.name ?? "User").\n\n"
+
+        // Add the reading type and time context
+        prompt += "**READING TYPE: TRANSIT & PROGRESSION**\n\n"
+
+        prompt += "**⏳ TIME CONTEXT:**\n"
+        prompt += "- \(timeContext) date\n"
+        prompt += "- \(timeDistance) \(isPast ? "ago" : "from now")\n\n"
+
+        // Add transit data
+        prompt += "**TRANSIT DATA for \(formattedDate):**\n"
+        prompt += "- Most important activations: \(netOne)\n"
+        prompt += "- Supporting activations: \(netTwo)\n"
+        prompt += "- Slightly less important: \(netThree)\n"
+        prompt += "- Daily triggers: \(netFour)\n"
+        prompt += "- This person is \(calculateAgeString(from: natalProfile.birthDate, to: transitDate)). Please make recommendations age-appropriate.\n\n"
+
+        // Add natal chart info for reference
+        prompt += "**Name:**\n"
+        prompt += "- Strongest Planet: \(natalProfile.strongestPlanet.keyName) in \(natalProfile.strongestPlanetSign.keyName), House \(natalProfile.strongestPlanetHouse) and ruling the cuso of House(s) \(natalProfile.strongestPlanetRuledHouses.sorted().map(String.init).joined(separator: ", "))\n"
+        prompt += "- Sun: \(natalProfile.sunSign.keyName) in House \(natalProfile.sunHouse)\n"
+        prompt += "- Moon: \(natalProfile.moonSign.keyName) in House \(natalProfile.moonHouse)\n"
+        prompt += "- Ascendant: \(natalProfile.ascendantSign.keyName)\n"
+        prompt += "- Most Harmonious Planet: \(natalProfile.mostHarmoniousPlanet.keyName)\n"
+        prompt += "- Most Discordant Planet: \(natalProfile.mostDiscordantPlanet.keyName)\n\n"
+
+        prompt += "**Dominant Signs:**\n"
+        for (sign, score) in natalProfile.dominantSignScores.sorted(by: { $0.value > $1.value }).prefix(3) {
+            prompt += "- \(sign.keyName): \(String(format: "%.2f", score))\n"
+        }
+
+        prompt += "\n**Dominant Houses:**\n"
+        for (house, score) in natalProfile.dominantHouseScores.sorted(by: { $0.value > $1.value }).prefix(3) {
+            prompt += "- House \(house): \(String(format: "%.2f", score))\n"
+        }
+
+        // Add house rulerships
+        prompt += "\n**HOUSE RULERSHIPS:**\n"
+
+        // Add interpretation guidance based on time context
+        if isPast {
+            prompt += "\nNow analyze what was happening to \(natalProfile.name ?? "User") on \(formattedDate) based on these transits and progressions. What were the key themes and evolutionary challenges during this period?"
+        } else if isFuture {
+            prompt += "\nNow analyze what will be happening to \(natalProfile.name ?? "User") on \(formattedDate) based on these transits and progressions. What will be the key themes and opportunities during this upcoming period?"
+        } else {
+            prompt += "\nNow analyze what is currently happening to \(natalProfile.name ?? "User") based on these transits and progressions. What are the key themes and evolutionary opportunities right now?"
+        }
+
+        return prompt
+    }
+
+    // Helper functions
+
+    private static func calculateAgeString(from birthdate: Date, to date: Date) -> String {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year], from: birthdate, to: date)
+        return "\(components.year ?? 0)-year-old"
+    }
+    private func formatHouseRulerships(for cake: ChartCake) -> String {
+        (1...12).map { house in
+            let rulers = cake.rulingBodies(for: house).map { $0.body.keyName }
+            return "• \(house)th House: \(rulers.joined(separator: ", "))"
+        }.joined(separator: "\n")
+    }
+}
+

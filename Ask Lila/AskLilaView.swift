@@ -96,6 +96,7 @@ class MyAgentChatController: UIViewController {
         setupUI()
         setupNavigationBar()
         startNewConversation()
+        print(chartCake.natal.asteroids.compactMap {$0.formatted})
         print("💬 AgentChat loaded with chartCake: \(chartCake?.name ?? "nil")")
            
            // Load previous conversations instead of just adding greeting message
@@ -750,9 +751,40 @@ class MyAgentChatController: UIViewController {
     }
 
 
+    func buildFourNetProfileString(transitDate: Date, chartCake: ChartCake) -> String? {
 
-    
-    
+
+        let calendar = Calendar.current
+        let now = Date()
+        let isPast = transitDate < now
+        let isFuture = transitDate > now
+        let components = calendar.dateComponents([.year, .month, .day], from: Date(), to: transitDate)
+
+        let yearsApart = components.year ?? 0
+        let monthsApart = components.month ?? 0
+        let daysApart = components.day ?? 0
+
+        let formattedDate = DateFormatter.localizedString(from: transitDate, dateStyle: .medium, timeStyle: .none)
+        let age = calculateAgeString(from: chartCake.natal.birthDate, to: transitDate)
+
+        let netOneData = chartCake.netOne()
+        let netTwoData = chartCake.netTwo()
+        let netThreeData = chartCake.netThree()
+        let netFourData = chartCake.netFour()
+
+        return """
+        ⏳ TIME CONTEXT:
+        - \(isPast ? "Past" : isFuture ? "Future" : "Present") date
+        - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
+        
+        TRANSIT DATA for \(formattedDate):
+        - Most important activations: \(netOneData)
+        - Supporting activations: \(netTwoData)
+        - Slightly less important: \(netThreeData)
+        - Daily triggers: \(netFourData)
+        - This person is \(age). Please make recommendations age-appropriate.
+        """
+    }
     @objc private func sendMessage() {
         guard let text = messageInputField.text, !text.isEmpty else { return }
 
@@ -782,7 +814,7 @@ class MyAgentChatController: UIViewController {
         } else {
             readingType = "NATAL CHART"
         }
-
+        let transitText = buildFourNetProfileString(transitDate: chartToUse?.transitDate ?? Date(), chartCake: chartToUse!)
         // Log the reading type
         print("🔍 Performing \(readingType) reading")
         var fullPrompt = ""
@@ -795,22 +827,41 @@ class MyAgentChatController: UIViewController {
             """
         }
 
-      
+        // Add time context information for transit readings
+        if readingType == "TRANSIT & PROGRESSION", let timeContext = UserDefaults.standard.dictionary(forKey: "transitTimeContext") {
+            let isPast = timeContext["isPast"] as? Bool ?? false
+            let isFuture = timeContext["isFuture"] as? Bool ?? false
+            let yearsApart = timeContext["yearsApart"] as? Int ?? 0
+            let monthsApart = timeContext["monthsApart"] as? Int ?? 0
+            let daysApart = timeContext["daysApart"] as? Int ?? 0
+
+            fullPrompt += """
+            ⏳ TIME CONTEXT:
+            - \(isPast ? "Past" : isFuture ? "Future" : "Current") date
+            - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
+            
+            """
+        }
 
         // Format the prompt to be more explicit about the context
         let formattedPrompt = """
         READING TYPE: \(readingType)
         
-        
+        \(fullPrompt)
         
         USER QUESTION: \(text)
         """
-        fullPrompt += formattedPrompt
+        // Track message sent event with Google Analytics
+        Analytics.logEvent("regular_message_sent", parameters: [
+            "reading_type": readingType,
+            "message_length": text.count,
+            "has_context": chartSummaryContext != nil
+        ])
         // Send to Lila agent
         LilaAgentManager.shared.sendMessageToAgent(
             prompt: formattedPrompt,
             userChart: chartToUse,
-            otherChart: otherChart
+            otherChart: otherChart, transitsContext: transitText
         ) { [weak self] response in
             guard let self = self else { return }
 
@@ -834,8 +885,6 @@ class MyAgentChatController: UIViewController {
             }
         }
     }
-    
-
     private func handleAgentResponse(_ response: String?, originalText: String) {
         DispatchQueue.main.async {
             self.loadingIndicator.stopAnimating()
@@ -950,7 +999,7 @@ class MyAgentChatController: UIViewController {
     /**
      * Updated method to handle date selection for transit/progression readings
      */
-    private func createTransitChart(for date: Date) {
+    private func createTransitChart(for date: Date) -> ChartCake {
         let birthdate = chartCake.natal.birthDate,
             latitude = chartCake.natal.latitude,
             longitude = chartCake.natal.longitude
@@ -960,7 +1009,14 @@ class MyAgentChatController: UIViewController {
         let isPastDate = selectedDate < today
         let isFutureDate = selectedDate > today
 
-        // Create transit chart
+        // Calculate time difference for context
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day, .month, .year], from: today, to: selectedDate)
+        let yearsApart = abs(components.year ?? 0)
+        let monthsApart = abs(components.month ?? 0)
+        let daysApart = abs(components.day ?? 0)
+
+        // Create transit chart with time difference context
         transitChartCake = ChartCake(
             birthDate: birthdate,
             latitude: latitude,
@@ -968,19 +1024,127 @@ class MyAgentChatController: UIViewController {
             transitDate: date
         )
 
-        print("✅ Transit Chart Updated for: \(date)")
+        // Store time difference data in user defaults for the model
+        let timeContext: [String: Any] = [
+            "isPast": isPastDate,
+            "isFuture": isFutureDate,
+            "yearsApart": yearsApart,
+            "monthsApart": monthsApart,
+            "daysApart": daysApart,
+            "selectedDate": selectedDate
+        ]
+
+        UserDefaults.standard.set(timeContext, forKey: "transitTimeContext")
+
+        print("✅ Transit Chart Updated for: \(date), \(isPastDate ? "Past" : isFutureDate ? "Future" : "Present") date, \(yearsApart) years, \(monthsApart) months, \(daysApart) days apart")
 
         // Clear any partner chart when selecting a transit date
-        // This ensures we don't mix transit and synastry readings
         otherChart = nil
 
         // Clear conversation history
         LilaMemoryManager.shared.clearConversationHistory()
 
-        // Now re-prompt the agent with the updated chart
-        autoPromptForNewDateContext(isPast: isPastDate, isFuture: isFutureDate, selectedDate: date)
+        // Now re-prompt the agent with the updated chart and time context
+        autoPromptForNewDateContext(isPast: isPastDate, isFuture: isFutureDate, selectedDate: date,yearsApart: yearsApart, monthsApart: monthsApart, daysApart: daysApart)
+        return transitChartCake!
     }
 
+    private func autoPromptForNewDateContext(isPast: Bool, isFuture: Bool, selectedDate: Date,
+                                             yearsApart: Int, monthsApart: Int, daysApart: Int) {
+        let formattedDate = DateFormatter.localizedString(from: selectedDate, dateStyle: .medium, timeStyle: .none)
+
+        // Create user-visible prompt
+        var prompt = "You've added new context:\n"
+        prompt += "🔹 Selected a **\(isPast ? "past" : isFuture ? "future" : "current") date**: \(formattedDate).\n"
+
+        // Add time difference context for user
+        if yearsApart > 0 {
+            prompt += "🕒 This is \(yearsApart) year\(yearsApart > 1 ? "s" : "") \(isPast ? "in the past" : "in the future").\n"
+        } else if monthsApart > 0 {
+            prompt += "🕒 This is \(monthsApart) month\(monthsApart > 1 ? "s" : "") \(isPast ? "in the past" : "in the future").\n"
+        } else if daysApart > 0 {
+            prompt += "🕒 This is \(daysApart) day\(daysApart > 1 ? "s" : "") \(isPast ? "in the past" : "in the future").\n"
+        }
+
+        // Add tailored questions based on the date context
+        if isPast {
+            prompt += "\n🕰️ What happened on \(formattedDate)?"
+        } else if isFuture {
+            prompt += "\n📅 What are you planning for \(formattedDate)?"
+        } else {
+            prompt += "\n👋 What's new these days??"
+        }
+
+        messages.append((prompt, false))
+        chatTableView.reloadData()
+        scrollToBottom()
+
+        let age = calculateAgeString(from: chartCake.natal.birthDate, to: Date())
+
+        // Create hidden context for the AI model with detailed transit/progression information
+        guard let transitChart = transitChartCake else { return }
+
+        // Get the transit and progression data from your functions
+        let netOneData = chartCake.netOne()
+        let netTwoData = chartCake.netTwo()
+        let netThreeData = chartCake.netThree()
+        let netFourData = chartCake.netFour()
+
+        print("🔮 Transit data for context:")
+        print("Net One: \(netOneData)")
+        print("Net Two: \(netTwoData)")
+        print("Net Three: \(netThreeData)")
+        print("Net Four: \(netFourData)")
+
+        // Create internal context with transit and progression data
+        let internalContext = """
+        READING TYPE: TRANSIT & PROGRESSION
+        
+        ⏳ TIME CONTEXT:
+        - \(isPast ? "Past" : isFuture ? "Future" : "Present") date
+        - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
+        
+        TRANSIT DATA for \(formattedDate):
+        - Most important activations: \(netOneData)
+        - Supporting activations: \(netTwoData)
+        - Slightly less important: \(netThreeData)
+        - Daily triggers: \(netFourData)
+        - This person is \(age). Please make recommendations age-appropriate.
+
+        HOUSE RULERSHIPS:
+        \(formatHouseRulerships(for: chartCake))
+        
+        Name:
+        - Strongest Planet: \(chartCake.strongestPlanet.keyName ?? "Moon") in \(chartCake.strongestPlanetSignSN), House \(chartCake.natal.houseCusps.house(of: chartCake.natal.planets.first(where: { $0.body == chartCake.strongestPlanet }) ?? chartCake.natal.sun).number)
+        - Sun: \(chartCake.natal.sun.sign) in House \(chartCake.natal.houseCusps.house(of: chartCake.natal.sun).number)
+        - Moon: \(chartCake.natal.moon.sign) in House \(chartCake.natal.houseCusps.house(of: chartCake.natal.moon).number)
+        - Ascendant: \(chartCake.natal.ascendantCoordinate.sign)
+        - Most Harmonious Planet: \(chartCake.mostHarmoniousPlanetSN )
+        - Most Discordant Planet: \(chartCake.mostDiscordantPlanetSN )
+        
+        Dominant Signs:
+        ""
+        
+        Dominant Houses:
+        ""
+        """
+
+        // Log the context to verify it's being created correctly
+        print("📊 Sending context to model: \n\(internalContext)")
+
+        // Store this context for the AI model to access
+        LilaMemoryManager.shared.addInternalPrompt(internalContext)
+
+        // Save context to UserDefaults as backup
+        UserDefaults.standard.set(internalContext, forKey: "lastTransitContext")
+    }
+
+    private func formatHouseRulerships(for cake: ChartCake) -> String {
+        (1...12).map { house in
+            let rulers = cake.rulingBodies(for: house).map { $0.body.keyName }
+            return "• \(house)th House: \(rulers.joined(separator: ", "))"
+        }.joined(separator: "\n")
+    }
     /**
      * Updated method to handle partner selection for synastry readings
      */
@@ -1268,6 +1432,7 @@ class PartnerSelectionPopoverViewController: UIViewController, UITableViewDelega
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+
     }
 
     private func fetchCharts() {

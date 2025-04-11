@@ -80,22 +80,26 @@ class LilaMemoryManager {
 
     // Helper methods to get context for FireStore
     private func determineReadingType() -> String {
-        // First try to get from active chart context if available
-        if let chartCake = UserDefaults.standard.string(forKey: "currentChartType") {
-            if chartCake.contains("synastry") || chartCake.contains("relationship") {
+        if let selectedDate = UserDefaults.standard.object(forKey: "selectedTransitDate") as? Date {
+            // If user has selected a transit date, force the reading type
+            return "TRANSIT & PROGRESSION"
+        }
+
+        if let chartType = UserDefaults.standard.string(forKey: "currentChartType") {
+            if chartType.contains("synastry") || chartType.contains("relationship") {
                 return "SYNASTRY/RELATIONSHIP"
-            } else if chartCake.contains("transit") || chartCake.contains("progression") {
+            } else if chartType.contains("transit") || chartType.contains("progression") {
                 return "TRANSIT & PROGRESSION"
             }
         }
-        
-        // Fallback to UserDefaults
+
         return UserDefaults.standard.string(forKey: "currentReadingType") ?? "NATAL CHART"
     }
 
     private func getCurrentChartName() -> String {
         return UserDefaults.standard.string(forKey: "currentChartName") ?? "Unknown"
     }
+
     
     func debugPrintRecentMessages(count: Int = 5) {
         let messages = fetchConversationHistory()
@@ -521,6 +525,7 @@ class LilaAgentManager {
         prompt: String,
         userChart: ChartCake?,
         otherChart: ChartCake? = nil,
+        transitsContext: String? = nil,
         completion: @escaping (String?) -> Void
     ) {
         guard let userChart = userChart else {
@@ -548,11 +553,13 @@ class LilaAgentManager {
         let promptBuilder = AgentPromptBuilder()
         promptBuilder.cake = userChart
 
+        let transitContext = transitsContext ?? ""
+
         let upgradedContext = promptBuilder.buildContext(
             for: readingType,
             userChart: userChart,
             partnerChart: otherChart
-        )
+        ) + "\n\n\(transitContext)"
 
         let fullPrompt = """
         \(systemInstructions)
@@ -906,6 +913,24 @@ protocol AIServiceDelegate: AnyObject {
     func didSelectAIService()
 }
 //
+
+
+struct FourNetProfile {
+    let natalProfile: MyUserChartProfile
+    let transitDate: Date
+    let isPast: Bool
+    let isFuture: Bool
+    let yearsApart: Int
+    let monthsApart: Int
+    let daysApart: Int
+    let netOne: [String]
+    let netTwo: [String]
+    let netThree: [String]
+    let netFour: [String]
+}
+
+
+
 struct MyUserChartProfile {
     let name: String
     let birthDate: Date
@@ -1237,6 +1262,105 @@ class AgentPromptBuilder {
              topAspectsToAscendantRulers: ascRulerAspects
          )
      }
+    func generateTransitUserPrompt(
+        from natalProfile: MyUserChartProfile,
+        transitDate: Date,
+        isPast: Bool,
+        isFuture: Bool,
+        yearsApart: Int,
+        monthsApart: Int,
+        daysApart: Int,
+        netOne: [String],
+        netTwo: [String],
+        netThree: [String],
+        netFour: [String],
+        houseRulerships: String,
+        mainHouse: Int,
+        userQuestion: String
+    ) -> String {
+
+        let formattedDate = DateFormatter.localizedString(from: transitDate, dateStyle: .medium, timeStyle: .none)
+        let age = LilaAgentManager.shared.calculateAgeString(from: natalProfile.birthDate, to: transitDate)
+
+        let mainHouseRulersLine = mainHouse > 0
+            ? "Focus on aspects to the **rulers of House \(mainHouse)**."
+            : "The main house of concern could not be determined — ask clarifying questions."
+
+        return """
+    📅 READING TYPE: TRANSIT & PROGRESSION  
+    📆 Date: \(formattedDate)  
+    🧭 Time Context: \(isPast ? "Past" : isFuture ? "Future" : "Present")  
+    📈 Time Distance: \(yearsApart) years, \(monthsApart) months, \(daysApart) days \(isPast ? "ago" : "from now")  
+    🎂 Age at the time: \(age)
+
+    🧠 USER QUESTION:  
+    \(userQuestion)
+
+    🔑 MAIN HOUSE OF CONCERN:  
+    House \(mainHouse) — determined based on the user question.  
+    \(mainHouseRulersLine)
+
+    🏛 HOUSE RULERSHIPS:
+    \(houseRulerships)
+
+    ---
+
+    📊 PLANETARY ACTIVATIONS:
+
+    **Net One – Primary Activators (prioritize these):**  
+    \(netOne.joined(separator: "\n"))
+
+    **Net Two – Supporting Aspects:**  
+    \(netTwo.joined(separator: "\n"))
+
+    **Net Three – Background Influences:**  
+    \(netThree.joined(separator: "\n"))
+
+    **Net Four – Daily Triggers:**  
+    \(netFour.joined(separator: "\n"))
+
+    ---
+
+    🧪 INTERPRETATION INSTRUCTIONS:
+
+    1. Identify **progressions and transits to the rulers of House \(mainHouse)**.
+    2. Focus first on Net One — these are likely the **main evolutionary activators**.
+    3. Use Net Two to deepen the story. Use Net Three and Four only to support timing or atmosphere.
+    4. Frame all events as **soul evolution opportunities**, not fate.
+    5. Highlight what the soul was learning, integrating, or preparing to release at this moment.
+    6. At the end, offer to explore how other transits might relate to this theme.
+
+    """
+    }
+
+
+    func buildFourNetProfile(from chart: ChartCake) -> FourNetProfile? {
+        guard let transitDate = chart.transits.transitDate else { return nil }
+
+        let calendar = Calendar.current
+        let now = Date()
+        let isPast = transitDate < now
+        let isFuture = transitDate > now
+        let components = calendar.dateComponents([.year, .month, .day], from: chart.natal.birthDate, to: transitDate)
+
+        let natalProfile = buildUserChartProfile(from: chart)
+
+        return FourNetProfile(
+            natalProfile: natalProfile,
+            transitDate: transitDate,
+            isPast: isPast,
+            isFuture: isFuture,
+            yearsApart: components.year ?? 0,
+            monthsApart: components.month ?? 0,
+            daysApart: components.day ?? 0,
+            netOne: chart.netOne(),
+            netTwo: chart.netTwo(),
+            netThree: chart.netThree(),
+            netFour: chart.netFour()
+        )
+    }
+
+
     func topAspects(chartCake: ChartCake,
         to planet: CelestialObject,
         in aspectsScores: [CelestialAspect: Double],
@@ -1250,18 +1374,33 @@ class AgentPromptBuilder {
             .map { NatalAspectScore(aspect: $0.key, score: $0.value) }
     }
 
+    private func inferMainHouse(from question: String) -> Int {
+        let q = question.lowercased()
+        if q.contains("career") || q.contains("job") || q.contains("work") || q.contains("retire") || q.contains("baseball") {
+            return 10
+        } else if q.contains("relationship") || q.contains("partner") || q.contains("marriage") || q.contains("love") {
+            return 7
+        } else if q.contains("spiritual") || q.contains("retreat") || q.contains("monk") || q.contains("solitude") {
+            return 12
+        } else {
+            return 0 // Model should follow up
+        }
+    }
+
     
-    
-     func buildContext(for readingType: ReadingType, userChart: ChartCake, partnerChart: ChartCake? = nil) -> String {
-        let profile = buildUserChartProfile(from: userChart)
-        let natalPrompt = NatalPromptGenerator.generatePrompt(from: profile)
-        let age = calculateAgeString(from: userChart.natal.birthDate, to: Date())
-      
-        var context = ""
+    func buildContext(
+        for readingType: ReadingType,
+        userChart: ChartCake,
+        partnerChart: ChartCake? = nil,
+        userQuestion: String = ""
+    ) -> String {
 
         switch readingType {
         case .natal:
-            context += """
+            let profile = buildUserChartProfile(from: userChart)
+            let natalPrompt = NatalPromptGenerator.generatePrompt(from: profile)
+
+            return """
             \(natalPrompt)
 
             HOUSE RULERSHIPS:
@@ -1269,36 +1408,43 @@ class AgentPromptBuilder {
             """
 
         case .transits:
-            let date = userChart.transits.transitDate
-            let dateString = date?.formatted(date: .abbreviated, time: .omitted) ?? "today"
+            guard let profile = buildFourNetProfile(from: userChart) else {
+                return "⚠️ Missing transit data."
+            }
 
-            context += """
-            \(natalPrompt)
+            let houseRulerships = formatHouseRulerships(for: userChart)
+            let mainHouse = inferMainHouse(from: userQuestion)
 
-            TRANSIT DATA for \(dateString):
-            - Most important activations: \(userChart.netOne())
-            - Supporting activations: \(userChart.netTwo())
-            - Slightly less important: \(userChart.netThree())
-            - Daily triggers: \(userChart.netFour())
-            - This person is \(age). Please make recommendations age-appropriate.
-
-            HOUSE RULERSHIPS:
-            \(formatHouseRulerships(for: userChart))
-            """
+            return generateTransitUserPrompt(
+                from: profile.natalProfile,
+                transitDate: profile.transitDate,
+                isPast: profile.isPast,
+                isFuture: profile.isFuture,
+                yearsApart: profile.yearsApart,
+                monthsApart: profile.monthsApart,
+                daysApart: profile.daysApart,
+                netOne: profile.netOne,
+                netTwo: profile.netTwo,
+                netThree: profile.netThree,
+                netFour: profile.netFour,
+                houseRulerships: houseRulerships,
+                mainHouse: mainHouse,
+                userQuestion: userQuestion
+            )
 
         case .synastry:
             guard let partner = partnerChart else {
-                return "\(natalPrompt)\n\n❗ Missing partner chart for synastry reading."
+                return "❗ Missing partner chart for synastry reading."
             }
 
-            // 👇 Build partner profile
+            let userProfile = buildUserChartProfile(from: userChart)
             let partnerProfile = buildUserChartProfile(from: partner)
+            let userPrompt = NatalPromptGenerator.generatePrompt(from: userProfile)
             let partnerPrompt = NatalPromptGenerator.generatePrompt(from: partnerProfile)
-
             let synastry = generateSynastryData(userChart: userChart, partnerChart: partner)
 
-            context += """
-            \(natalPrompt)
+            return """
+            \(userPrompt)
 
             ❤️ SYNASTRY DATA:
 
@@ -1308,10 +1454,7 @@ class AgentPromptBuilder {
             🔗 CONNECTIONS:
             \(synastry)
             """
-
         }
-
-        return context
     }
 
     private func generateSynastryData(userChart: ChartCake, partnerChart: ChartCake) -> String {

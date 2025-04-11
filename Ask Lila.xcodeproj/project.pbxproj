@@ -9,11 +9,12 @@
 /* Begin PBXBuildFile section */
 		390A37852D96E8EF002404D9 /* CoT2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390A37842D96E8EF002404D9 /* CoT2.swift */; };
 		390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390A37862D96EA7C002404D9 /* CoT2VC.swift */; };
+		391122872DA8E236005ED82C /* Splash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391122862DA8E236005ED82C /* Splash.swift */; };
+		3914D3252DA8DF1F00AAF32B /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3914D3242DA8DF1F00AAF32B /* Welcome.swift */; };
 		391DF0AC2D9E070A0082D515 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */; };
 		391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 391DF0AD2D9E07240082D515 /* Ask_Lila.xcdatamodeld */; };
 		3962569C2D89365400ECCF68 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3962569B2D89365400ECCF68 /* GoogleSignInSwift */; };
 		396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256A92D89F23100ECCF68 /* LoginVC.swift */; };
-		396256B72D89F23300ECCF68 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AA2D89F23100ECCF68 /* Config.swift */; };
 		396256B82D89F23300ECCF68 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AB2D89F23200ECCF68 /* Files.swift */; };
 		396256B92D89F23300ECCF68 /* MyUserProfileData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AC2D89F23200ECCF68 /* MyUserProfileData.swift */; };
 		396256BD2D89F23300ECCF68 /* EditChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256B02D89F23200ECCF68 /* EditChart.swift */; };
@@ -31,9 +32,6 @@
 		396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EEFEE2D98CE4D000AED12 /* manager.swift */; };
 		396EEFF32D98FFA5000AED12 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 396EEFF22D98FFA5000AED12 /* FirebaseAuthCombine-Community */; };
 		3994408B2D88BB4C00BB0429 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 3994408A2D88BB4C00BB0429 /* Base */; };
-		399440962D88BB4D00BB0429 /* Ask_LilaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399440952D88BB4D00BB0429 /* Ask_LilaTests.swift */; };
-		399440A02D88BB4D00BB0429 /* Ask_LilaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3994409F2D88BB4D00BB0429 /* Ask_LilaUITests.swift */; };
-		399440A22D88BB4D00BB0429 /* Ask_LilaUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399440A12D88BB4D00BB0429 /* Ask_LilaUITestsLaunchTests.swift */; };
 		399440B02D88BCA800BB0429 /* SwiftEphemeris in Frameworks */ = {isa = PBXBuildFile; productRef = 399440AF2D88BCA800BB0429 /* SwiftEphemeris */; };
 		399440B32D88BD0400BB0429 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 399440B22D88BD0400BB0429 /* FirebaseAnalytics */; };
 		399440B52D88BD0400BB0429 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = 399440B42D88BD0400BB0429 /* FirebaseAnalyticsOnDeviceConversion */; };
@@ -66,6 +64,7 @@
 		39CC1F922D9DD90400615B2E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39CC1F912D9DD90400615B2E /* ViewController.swift */; };
 		39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6842DA0601A00AF97E4 /* Rasta.swift */; };
 		39DBF6872DA07E5A00AF97E4 /* SoulChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */; };
+		39EED7892DA37588005E207D /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39EED7882DA37588005E207D /* Config.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,11 +87,12 @@
 /* Begin PBXFileReference section */
 		390A37842D96E8EF002404D9 /* CoT2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoT2.swift; sourceTree = "<group>"; };
 		390A37862D96EA7C002404D9 /* CoT2VC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoT2VC.swift; sourceTree = "<group>"; };
+		391122862DA8E236005ED82C /* Splash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Splash.swift; sourceTree = "<group>"; };
+		3914D3242DA8DF1F00AAF32B /* Welcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Welcome.swift; sourceTree = "<group>"; };
 		391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		391DF0AE2D9E07240082D515 /* Ask_Lila.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ask_Lila.xcdatamodel; sourceTree = "<group>"; };
 		391DF0B02D9E072F0082D515 /* Ask Lila.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Ask Lila.entitlements"; sourceTree = "<group>"; };
 		396256A92D89F23100ECCF68 /* LoginVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
-		396256AA2D89F23100ECCF68 /* Config.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		396256AB2D89F23200ECCF68 /* Files.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		396256AC2D89F23200ECCF68 /* MyUserProfileData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyUserProfileData.swift; sourceTree = "<group>"; };
 		396256AD2D89F23200ECCF68 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -112,10 +112,7 @@
 		399440782D88BB4B00BB0429 /* Ask Lila.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Ask Lila.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3994408A2D88BB4C00BB0429 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		399440912D88BB4D00BB0429 /* Ask LilaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Ask LilaTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		399440952D88BB4D00BB0429 /* Ask_LilaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ask_LilaTests.swift; sourceTree = "<group>"; };
 		3994409B2D88BB4D00BB0429 /* Ask LilaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Ask LilaUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		3994409F2D88BB4D00BB0429 /* Ask_LilaUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ask_LilaUITests.swift; sourceTree = "<group>"; };
-		399440A12D88BB4D00BB0429 /* Ask_LilaUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ask_LilaUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		39AF9E962D9B6A3100765A38 /* Question Migration .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Question Migration .swift"; sourceTree = "<group>"; };
 		39AF9E982D9BA77000765A38 /* LilaIntel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LilaIntel.swift; sourceTree = "<group>"; };
 		39AF9E9A2D9BA7EA00765A38 /* GraphGraphs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphGraphs.swift; sourceTree = "<group>"; };
@@ -126,6 +123,7 @@
 		39CC1F912D9DD90400615B2E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		39DBF6842DA0601A00AF97E4 /* Rasta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rasta.swift; sourceTree = "<group>"; };
 		39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoulChat.swift; sourceTree = "<group>"; };
+		39EED7882DA37588005E207D /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,8 +180,6 @@
 			children = (
 				396256D82D89F4E700ECCF68 /* Main.storyboard */,
 				3994407A2D88BB4B00BB0429 /* Ask Lila */,
-				399440942D88BB4D00BB0429 /* Ask LilaTests */,
-				3994409E2D88BB4D00BB0429 /* Ask LilaUITests */,
 				399440792D88BB4B00BB0429 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -207,9 +203,10 @@
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
+				391122862DA8E236005ED82C /* Splash.swift */,
 				396256C82D89F23E00ECCF68 /* AppCoordinator.swift */,
-				396256AA2D89F23100ECCF68 /* Config.swift */,
 				396256B02D89F23200ECCF68 /* EditChart.swift */,
+				39EED7882DA37588005E207D /* Config.swift */,
 				396256AB2D89F23200ECCF68 /* Files.swift */,
 				396256C32D89F23E00ECCF68 /* AppDelegate.swift */,
 				391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */,
@@ -229,6 +226,7 @@
 				396256C52D89F23E00ECCF68 /* Base.lproj */,
 				396256AD2D89F23200ECCF68 /* Info.plist */,
 				396256A92D89F23100ECCF68 /* LoginVC.swift */,
+				3914D3242DA8DF1F00AAF32B /* Welcome.swift */,
 				396256AC2D89F23200ECCF68 /* MyUserProfileData.swift */,
 				396256B22D89F23200ECCF68 /* NodalStory.swift */,
 				396256B12D89F23200ECCF68 /* PartnerViewController.swift */,
@@ -236,23 +234,6 @@
 				399440892D88BB4C00BB0429 /* LaunchScreen.storyboard */,
 			);
 			path = "Ask Lila";
-			sourceTree = "<group>";
-		};
-		399440942D88BB4D00BB0429 /* Ask LilaTests */ = {
-			isa = PBXGroup;
-			children = (
-				399440952D88BB4D00BB0429 /* Ask_LilaTests.swift */,
-			);
-			path = "Ask LilaTests";
-			sourceTree = "<group>";
-		};
-		3994409E2D88BB4D00BB0429 /* Ask LilaUITests */ = {
-			isa = PBXGroup;
-			children = (
-				3994409F2D88BB4D00BB0429 /* Ask_LilaUITests.swift */,
-				399440A12D88BB4D00BB0429 /* Ask_LilaUITestsLaunchTests.swift */,
-			);
-			path = "Ask LilaUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -421,7 +402,7 @@
 			files = (
 				39CC1F922D9DD90400615B2E /* ViewController.swift in Sources */,
 				396256BE2D89F23300ECCF68 /* PartnerViewController.swift in Sources */,
-				396256B72D89F23300ECCF68 /* Config.swift in Sources */,
+				39EED7892DA37588005E207D /* Config.swift in Sources */,
 				39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */,
 				391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */,
 				39AF9E972D9B6A3100765A38 /* Question Migration .swift in Sources */,
@@ -429,6 +410,7 @@
 				396256C02D89F23300ECCF68 /* SubscriptionManager.swift in Sources */,
 				39CC1F902D9DD7EE00615B2E /* AskLilaView.swift in Sources */,
 				390A37852D96E8EF002404D9 /* CoT2.swift in Sources */,
+				391122872DA8E236005ED82C /* Splash.swift in Sources */,
 				390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */,
 				396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */,
 				39AF9E9D2D9C6C4400765A38 /* ConversationLogger.swift in Sources */,
@@ -439,6 +421,7 @@
 				396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */,
 				396256B92D89F23300ECCF68 /* MyUserProfileData.swift in Sources */,
 				396256BF2D89F23300ECCF68 /* NodalStory.swift in Sources */,
+				3914D3252DA8DF1F00AAF32B /* Welcome.swift in Sources */,
 				396256D72D89F23E00ECCF68 /* AIService.swift in Sources */,
 				396256C22D89F23300ECCF68 /* SceneDelegate.swift in Sources */,
 				396256D52D89F23E00ECCF68 /* AppCoordinator.swift in Sources */,
@@ -453,7 +436,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				399440962D88BB4D00BB0429 /* Ask_LilaTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -461,8 +443,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				399440A22D88BB4D00BB0429 /* Ask_LilaUITestsLaunchTests.swift in Sources */,
-				399440A02D88BB4D00BB0429 /* Ask_LilaUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -675,7 +655,6 @@
 		399440A92D88BB4D00BB0429 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -695,7 +674,6 @@
 		399440AA2D88BB4D00BB0429 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -715,7 +693,6 @@
 		399440AC2D88BB4D00BB0429 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UQYCK3883D;
@@ -733,7 +710,6 @@
 		399440AD2D88BB4D00BB0429 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UQYCK3883D;

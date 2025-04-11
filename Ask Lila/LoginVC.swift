@@ -454,8 +454,12 @@ class LoginViewController: UIViewController, ASAuthorizationControllerDelegate, 
     }
 
     private func navigateToHome() {
-        delegate?.didLoginSuccessfully()
+        let welcomeVC = WelcomeViewController()
+        let navController = UINavigationController(rootViewController: welcomeVC)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true, completion: nil)
     }
+
     private func saveUserInfoToCoreData(userId: String, displayName: String?, email: String?) {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
             print("⚠️ Could not access AppDelegate")
