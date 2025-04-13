@@ -166,30 +166,29 @@ class MyAgentChatController: UIViewController {
 
         print("💾 Started new conversation: \(conversationId)")
     }
-<<<<<<< Updated upstream
-    private func setupNavigationBar() {
-        let calendarIcon = UIImage(systemName: "calendar")
-        let personIcon = UIImage(systemName: "person.2")
-        let aiIcon = UIImage(systemName: "brain.head.profile")
-        let gearIcon = UIImage(systemName: "gearshape")
-        let storyIcon = UIImage(systemName: "book.pages")
-        let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal")
-        let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
 
-        let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
-        let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
-        let showStoryButton = UIBarButtonItem(image: storyIcon, style: .plain, target: self, action: #selector(showSouthNodeStoryTapped))
-
-        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
-        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
-        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
-        let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
-
-        // 👇 This is the key part: assign the array directly
-        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
-        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, showStatsButton]
-    }
-=======
+//    private func setupNavigationBar() {
+//        let calendarIcon = UIImage(systemName: "calendar")
+//        let personIcon = UIImage(systemName: "person.2")
+//        let aiIcon = UIImage(systemName: "brain.head.profile")
+//        let gearIcon = UIImage(systemName: "gearshape")
+//        let storyIcon = UIImage(systemName: "book.pages")
+//        let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal")
+//        let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
+//
+//        let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
+//        let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
+//        let showStoryButton = UIBarButtonItem(image: storyIcon, style: .plain, target: self, action: #selector(showSouthNodeStoryTapped))
+//
+//        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
+//        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
+//        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
+//        let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
+//
+//        // 👇 This is the key part: assign the array directly
+//        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
+//        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, showStatsButton]
+//    }
 
     private func setupNavigationBar() {
            // Soulful symbols and icons
@@ -231,12 +230,12 @@ class MyAgentChatController: UIViewController {
 
            updateAIServiceIndicator()
        }
->>>>>>> Stashed changes
+
 
     
     @objc private func showConversationHistory() {
         // Present the AI service selector
-        let historyVC = YesNoTarotViewController()
+        let historyVC = ConversationHistoryViewController()
   
         let navController = UINavigationController(rootViewController: historyVC)
         present(navController, animated: true)
@@ -579,7 +578,7 @@ class MyAgentChatController: UIViewController {
     }
 
     @objc private func editChartTapped() {
-<<<<<<< Updated upstream
+
         print("🛠️ Edit tapped — attempting to call SceneDelegate...")
 
         if let windowScene = view.window?.windowScene,
@@ -588,18 +587,19 @@ class MyAgentChatController: UIViewController {
             sceneDelegate.showEditChartScreen()
         } else {
             print("⚠️ SceneDelegate is nil or not ready")
-=======
-        print("Edit button tapped - using direct approach")
-        
-        // Simple direct approach: Create and present the edit view controller directly
-        let editVC = EditChartViewController()
-        editVC.chartCake = self.chartCake
-        
-        // Present modally with a navigation controller
-        let navController = UINavigationController(rootViewController: editVC)
-        present(navController, animated: true) {
-            print("✅ Edit chart screen presented successfully")
->>>>>>> Stashed changes
+
+            print("Edit button tapped - using direct approach")
+
+            // Simple direct approach: Create and present the edit view controller directly
+            let editVC = EditChartViewController()
+            editVC.chartCake = self.chartCake
+
+            // Present modally with a navigation controller
+            let navController = UINavigationController(rootViewController: editVC)
+            present(navController, animated: true) {
+                print("✅ Edit chart screen presented successfully")
+
+            }
         }
     }
 
@@ -1157,23 +1157,7 @@ class MyAgentChatController: UIViewController {
         - Daily triggers: \(netFourData)
         - This person is \(age). Please make recommendations age-appropriate.
 
-        HOUSE RULERSHIPS:
-        \(formatHouseRulerships(for: chartCake))
-        
-        Name:
-        - Strongest Planet: \(chartCake.strongestPlanet.keyName ?? "Moon") in \(chartCake.strongestPlanetSignSN), House \(chartCake.natal.houseCusps.house(of: chartCake.natal.planets.first(where: { $0.body == chartCake.strongestPlanet }) ?? chartCake.natal.sun).number)
-        - Sun: \(chartCake.natal.sun.sign) in House \(chartCake.natal.houseCusps.house(of: chartCake.natal.sun).number)
-        - Moon: \(chartCake.natal.moon.sign) in House \(chartCake.natal.houseCusps.house(of: chartCake.natal.moon).number)
-        - Ascendant: \(chartCake.natal.ascendantCoordinate.sign)
-        - Most Harmonious Planet: \(chartCake.mostHarmoniousPlanetSN )
-        - Most Discordant Planet: \(chartCake.mostDiscordantPlanetSN )
-        
-        Dominant Signs:
-        ""
-        
-        Dominant Houses:
-        ""
-        """
+"""
 
         // Log the context to verify it's being created correctly
         print("📊 Sending context to model: \n\(internalContext)")

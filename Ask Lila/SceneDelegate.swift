@@ -328,6 +328,12 @@ extension SceneDelegate: EditChartViewControllerDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         print("🌱 Scene became active")
 
+        // Set Claude (index 1) as the default AI service if not already set
+        if UserDefaults.standard.object(forKey: "selectedAIService") == nil {
+            UserDefaults.standard.set(1, forKey: "selectedAIService")
+            print("✅ Set Claude as default AI service")
+        }
+
         // Delay a little to avoid race conditions at app startup
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.requestTrackingPermissionIfNeeded()
