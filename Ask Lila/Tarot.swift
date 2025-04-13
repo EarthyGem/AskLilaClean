@@ -34,21 +34,32 @@ struct ChurchOfLightTarotCard: Identifiable {
 
 
 
+// Add a TarotDeckType enum to switch between decks
+enum TarotDeckType {
+    case churchOfLight
+    case riderWaite
+}
+
 class YesNoTarotViewController: UIViewController {
     private let questionField = UITextField()
     private let askButton = UIButton(type: .system)
-    private let cardViews = [UIView(), UIView(), UIView(), UIView(), UIView()]
+    private let cardViews = [UIImageView(), UIImageView(), UIImageView(), UIImageView(), UIImageView()]
     private let resultLabel = UILabel()
     private let serviceSelector = UISegmentedControl(items: ["OpenAI", "Claude", "HuggingFace"])
+    private let deckTypeSelector = UISegmentedControl(items: ["Church of Light", "Rider-Waite"])
     private var deckManager = ChurchOfLightDeckManager()
+    private var riderWaiteDeckManager = RiderWaiteDeckManager() // Add a second deck manager
     private var question: String = ""
     private var dealtCards: [ChurchOfLightTarotCard] = []
+    private var dealtRiderWaiteCards: [RiderWaiteTarotCard] = [] // For Rider-Waite cards
+    private var currentDeckType: TarotDeckType = .churchOfLight
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         setupUI()
     }
+
     @objc private func serviceChanged() {
         switch serviceSelector.selectedSegmentIndex {
         case 0:
@@ -62,11 +73,26 @@ class YesNoTarotViewController: UIViewController {
         }
     }
 
+    // In deckTypeChanged() method:
+    @objc private func deckTypeChanged() {
+        currentDeckType = deckTypeSelector.selectedSegmentIndex == 0 ? .churchOfLight : .riderWaite
+        // Reset card displays when switching decks
+        let backImageName = currentDeckType == .churchOfLight ? "col_cardBack" : "rw_cardBack"
+        for cardView in cardViews {
+            cardView.image = UIImage(named: backImageName)
+            cardView.transform = .identity
+        }
+    }
     private func setupUI() {
         // 🔮 AI Service Selector
         serviceSelector.selectedSegmentIndex = 0
         serviceSelector.addTarget(self, action: #selector(serviceChanged), for: .valueChanged)
         serviceSelector.translatesAutoresizingMaskIntoConstraints = false
+
+        // 🎴 Deck Type Selector
+        deckTypeSelector.selectedSegmentIndex = 0
+        deckTypeSelector.addTarget(self, action: #selector(deckTypeChanged), for: .valueChanged)
+        deckTypeSelector.translatesAutoresizingMaskIntoConstraints = false
 
         // 🔍 Question Input
         questionField.placeholder = "Enter your yes/no question"
@@ -91,16 +117,22 @@ class YesNoTarotViewController: UIViewController {
 
         // 📥 Add Subviews
         view.addSubview(serviceSelector)
+        view.addSubview(deckTypeSelector)
         view.addSubview(questionField)
         view.addSubview(askButton)
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         contentView.addSubview(resultLabel)
 
-        // 🃏 Card Views
+        // 🃏 Card Views - Now using UIImageView instead of UIView
+        // 🃏 Card Views - Now using UIImageView instead of UIView
         for (i, cardView) in cardViews.enumerated() {
-            cardView.backgroundColor = .systemBlue
+            // Use the appropriate card back based on current deck type
+            let backImageName = currentDeckType == .churchOfLight ? "col_cardBack" : "rw_cardBack"
+            cardView.image = UIImage(named: backImageName)
+            cardView.contentMode = .scaleAspectFit
             cardView.layer.cornerRadius = 8
+            cardView.clipsToBounds = true
             cardView.tag = i
             cardView.isUserInteractionEnabled = true
             cardView.translatesAutoresizingMaskIntoConstraints = false
@@ -111,7 +143,12 @@ class YesNoTarotViewController: UIViewController {
         NSLayoutConstraint.activate([
             // Service Selector
             serviceSelector.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            serviceSelector.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            serviceSelector.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+
+            // Deck Type Selector
+            deckTypeSelector.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            deckTypeSelector.leadingAnchor.constraint(equalTo: serviceSelector.trailingAnchor, constant: 10),
+            deckTypeSelector.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
 
             // Question Field
             questionField.topAnchor.constraint(equalTo: serviceSelector.bottomAnchor, constant: 12),
@@ -166,14 +203,31 @@ class YesNoTarotViewController: UIViewController {
             return
         }
 
-        deckManager = ChurchOfLightDeckManager()
-        deckManager.shuffleAndCut()
-        dealtCards = Array(deckManager.deck.prefix(5))
+        // Reset cards to show backs with the correct deck-specific image
+        let backImageName = currentDeckType == .churchOfLight ? "col_cardBack" : "rw_cardBack"
+        for cardView in cardViews {
+            cardView.image = UIImage(named: backImageName)
+            cardView.transform = .identity
+        }
+
+        // Handle different deck types
+        switch currentDeckType {
+        case .churchOfLight:
+            deckManager = ChurchOfLightDeckManager()
+            deckManager.shuffleAndCut()
+            dealtCards = Array(deckManager.deck.prefix(5))
+            interpretChurchOfLightYesNo()
+
+        case .riderWaite:
+            riderWaiteDeckManager = RiderWaiteDeckManager()
+            riderWaiteDeckManager.shuffleAndCut()
+            dealtRiderWaiteCards = Array(riderWaiteDeckManager.deck.prefix(5))
+            interpretRiderWaiteYesNo()
+        }
 
         resultLabel.text = "Reading..."
-        interpretYesNo()
     }
-    private func interpretYesNo() {
+    private func interpretChurchOfLightYesNo() {
         guard dealtCards.count == 5 else {
             print("❌ Error: You must have exactly 5 cards. Current count: \(dealtCards.count)")
             resultLabel.text = "Error: Not enough cards."
@@ -186,11 +240,9 @@ class YesNoTarotViewController: UIViewController {
 
         let cardNames = dealtCards.map { "\($0.name)\($0.isReversed ? " (Reversed)" : "")" }
 
-
         let promptBuilder = ChurchOfLightTarotPromptBuilder()
-        let prompt = promptBuilder.buildPrompt(
+        let prompt = promptBuilder.buildYesNoSpread(
             question: question,
-            spreadName: "Yes/No",
             cardNames: cardNames
         )
 
@@ -200,6 +252,8 @@ class YesNoTarotViewController: UIViewController {
                 switch result {
                 case .success(let answer):
                     self?.resultLabel.text = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+                    // Flip cards once answer is received
+                    self?.flipChurchOfLightCards()
                 case .failure(let error):
                     self?.resultLabel.text = "Error: \(error.localizedDescription)"
                 }
@@ -207,6 +261,230 @@ class YesNoTarotViewController: UIViewController {
         }
     }
 
+    private func interpretRiderWaiteYesNo() {
+        guard dealtRiderWaiteCards.count == 5 else {
+            print("❌ Error: You must have exactly 5 cards. Current count: \(dealtRiderWaiteCards.count)")
+            resultLabel.text = "Error: Not enough cards."
+            return
+        }
+
+        for (i, card) in dealtRiderWaiteCards.enumerated() {
+            print("🃏 Card \(i + 1): \(card.name) \(card.isReversed ? "(Reversed)" : "(Upright)")")
+        }
+
+        let cardNames = dealtRiderWaiteCards.map { "\($0.name)\($0.isReversed ? " (Reversed)" : "")" }
+
+        let promptBuilder = RiderWaiteTarotPromptBuilder()
+        let prompt = promptBuilder.buildYesNoSpread(
+            question: question,
+            cardNames: cardNames
+        )
+
+        // ✅ Use the currently selected Tarot service
+        TarotAIServiceManager.shared.currentService.generateTarotReading(prompt: prompt) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let answer):
+                    self?.resultLabel.text = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+                    // Flip cards once answer is received
+                    self?.flipRiderWaiteCards()
+                case .failure(let error):
+                    self?.resultLabel.text = "Error: \(error.localizedDescription)"
+                }
+            }
+        }
+    }
+
+    // Flip animation for Church of Light cards
+    private func flipChurchOfLightCards() {
+        // Flip cards one by one with a delay
+        for (index, card) in dealtCards.enumerated() {
+            // Get image name from the card
+            let imageName = getChurchOfLightImageName(card)
+
+            // Delay flipping each card by 0.5 seconds * index
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.5) { [weak self] in
+                guard let self = self else { return }
+
+                // Perform flip animation
+                UIView.transition(with: self.cardViews[index], duration: 0.5, options: .transitionFlipFromLeft, animations: {
+                    // Change the image to the card front during the animation
+                    self.cardViews[index].image = UIImage(named: imageName)
+
+                    // Apply rotation if card is reversed
+                    if card.isReversed {
+                        self.cardViews[index].transform = CGAffineTransform(rotationAngle: .pi)
+                    }
+                }, completion: nil)
+            }
+        }
+    }
+
+    // Flip animation for Rider-Waite cards
+    private func flipRiderWaiteCards() {
+        // Flip cards one by one with a delay
+        for (index, card) in dealtRiderWaiteCards.enumerated() {
+            // Get image name from the card
+            let imageName = getRiderWaiteImageName(card)
+
+            // Delay flipping each card by 0.5 seconds * index
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.5) { [weak self] in
+                guard let self = self else { return }
+
+                // Perform flip animation
+                UIView.transition(with: self.cardViews[index], duration: 0.5, options: .transitionFlipFromLeft, animations: {
+                    // Change the image to the card front during the animation
+                    self.cardViews[index].image = UIImage(named: imageName)
+
+                    // Apply rotation if card is reversed
+                    if card.isReversed {
+                        self.cardViews[index].transform = CGAffineTransform(rotationAngle: .pi)
+                    }
+                }, completion: nil)
+            }
+        }
+    }
+
+    // Get image name for Church of Light card
+    private func getChurchOfLightImageName(_ card: ChurchOfLightTarotCard) -> String {
+        // Major Arcana naming: col_majorXX
+        // Where XX is the arcanum number with leading zero if needed
+        // Example: "col_major01" for The Magician
+
+        // Minor Arcana naming: col_suitRank
+        // Where suit is w=wands/scepters, c=cups, s=swords, p=pentacles/coins
+        // Example: "col_w05" for Five of Wands/Scepters
+
+        let normalizedName = card.name.lowercased()
+
+        // Major Arcana (0-21)
+        if let arcanum = card.arcanum {
+            // Extract number from arcanum
+            let numberString: String
+            if arcanum.contains("XXII") || arcanum.contains("0") {
+                numberString = "00" // The Fool
+            } else if let arcNum = Int(arcanum.filter({ $0.isNumber })) {
+                numberString = String(format: "%02d", arcNum)
+            } else {
+                // Handle roman numerals (simplified)
+                let romanNumerals = ["I": "01", "II": "02", "III": "03", "IV": "04", "V": "05",
+                                    "VI": "06", "VII": "07", "VIII": "08", "IX": "09", "X": "10",
+                                    "XI": "11", "XII": "12", "XIII": "13", "XIV": "14", "XV": "15",
+                                    "XVI": "16", "XVII": "17", "XVIII": "18", "XIX": "19", "XX": "20", "XXI": "21"]
+                numberString = romanNumerals[arcanum] ?? "00"
+            }
+
+            return "col_major\(numberString)"
+        }
+
+        // Minor Arcana
+        if normalizedName.contains("of") {
+            // Get suit initial
+            let suitInitial: String
+            if normalizedName.contains("scepters") || normalizedName.contains("wands") {
+                suitInitial = "w" // wands
+            } else if normalizedName.contains("cups") {
+                suitInitial = "c" // cups
+            } else if normalizedName.contains("swords") {
+                suitInitial = "s" // swords
+            } else if normalizedName.contains("coins") || normalizedName.contains("pentacles") {
+                suitInitial = "p" // pentacles/coins
+            } else {
+                suitInitial = "x" // unknown
+            }
+
+            // Handle court cards
+            if normalizedName.contains("king") {
+                return "col_\(suitInitial)k"
+            } else if normalizedName.contains("queen") {
+                return "col_\(suitInitial)q"
+            } else if normalizedName.contains("youth") || normalizedName.contains("page") {
+                return "col_\(suitInitial)y"
+            } else if normalizedName.contains("horseman") || normalizedName.contains("knight") {
+                return "col_\(suitInitial)h"
+            }
+
+            // Handle numbered cards (extract number)
+            let numbersText = ["ace": "01", "two": "02", "three": "03", "four": "04", "five": "05",
+                              "six": "06", "seven": "07", "eight": "08", "nine": "09", "ten": "10"]
+
+            for (word, num) in numbersText {
+                if normalizedName.contains(word) {
+                    return "col_\(suitInitial)\(num)"
+                }
+            }
+        }
+
+        // Fallback for any card we couldn't categorize
+        return "col_cardFront"
+    }
+
+    // Get image name for Rider-Waite card
+    private func getRiderWaiteImageName(_ card: RiderWaiteTarotCard) -> String {
+        // Major Arcana naming: rw_majorXX
+        // Where XX is the arcanum number with leading zero if needed
+        // Example: "rw_major01" for The Magician
+
+        // Minor Arcana naming: rw_suitRank
+        // Where suit is w=wands, c=cups, s=swords, p=pentacles
+        // Example: "rw_w05" for Five of Wands
+
+        let normalizedName = card.name.lowercased()
+
+        // Major Arcana (0-21)
+        if let arcanum = card.arcanum {
+            // Extract number from arcanum
+            let numberString: String
+            if arcanum == "0" {
+                numberString = "00" // The Fool
+            } else {
+                numberString = String(format: "%02d", Int(arcanum) ?? 0)
+            }
+
+            return "rw_major\(numberString)"
+        }
+
+        // Minor Arcana
+        if normalizedName.contains("of") {
+            // Get suit initial
+            let suitInitial: String
+            if normalizedName.contains("wands") {
+                suitInitial = "w" // wands
+            } else if normalizedName.contains("cups") {
+                suitInitial = "c" // cups
+            } else if normalizedName.contains("swords") {
+                suitInitial = "s" // swords
+            } else if normalizedName.contains("pentacles") {
+                suitInitial = "p" // pentacles
+            } else {
+                suitInitial = "x" // unknown
+            }
+
+            // Handle court cards
+            if normalizedName.contains("king") {
+                return "rw_\(suitInitial)k"
+            } else if normalizedName.contains("queen") {
+                return "rw_\(suitInitial)q"
+            } else if normalizedName.contains("page") {
+                return "rw_\(suitInitial)p"
+            } else if normalizedName.contains("knight") {
+                return "rw_\(suitInitial)n"
+            }
+
+            // Handle numbered cards (extract number)
+            let numbersText = ["ace": "01", "two": "02", "three": "03", "four": "04", "five": "05",
+                              "six": "06", "seven": "07", "eight": "08", "nine": "09", "ten": "10"]
+
+            for (word, num) in numbersText {
+                if normalizedName.contains(word) {
+                    return "rw_\(suitInitial)\(num)"
+                }
+            }
+        }
+
+        // Fallback for any card we couldn't categorize
+        return "rw_cardFront"
+    }
 }
 class ChurchOfLightDeckManager {
     var deck: [ChurchOfLightTarotCard] = ChurchOfLightDeckLibrary.fullDeck()
@@ -259,7 +537,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Mercury",
             "Hebrew": "Aleph (א)",
             "Color": "Violet",
-            "Element": "Air",
+            "Element": "",
             "Metal": "Quicksilver",
             "Divinatory": "Will, Dexterity",
             "Inner Meaning": "ACTIVITY"
@@ -299,7 +577,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Jupiter",
             "Hebrew": "He (ה)",
             "Color": "Purple or Indigo",
-            "Element": "Fire",
+            "Element": "",
             "Metal": "Tin",
             "Divinatory": "Religion, Law",
             "Inner Meaning": "REFORMATION"
@@ -309,7 +587,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Venus",
             "Hebrew": "Vau (ו)",
             "Color": "Yellow",
-            "Element": "Air",
+            "Element": "",
             "Metal": "Copper",
             "Divinatory": "Temptation",
             "Inner Meaning": "AMBITION"
@@ -349,7 +627,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Uranus",
             "Hebrew": "Jod (י)",
             "Color": "Dazzling White",
-            "Element": "Fire/Air",
+            "Element": "",
             "Metal": "Uranium",
             "Divinatory": "Change of Fortune",
             "Inner Meaning": "ENTHUSIASM"
@@ -359,7 +637,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Neptune",
             "Hebrew": "Caph (כ)",
             "Color": "Iridescence",
-            "Element": "Water",
+            "Element": "",
             "Metal": "Neptunium",
             "Divinatory": "Force, Spiritual Power",
             "Inner Meaning": "I AM"
@@ -399,7 +677,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Saturn",
             "Hebrew": "Samek (ס)",
             "Color": "Blue",
-            "Element": "Earth",
+            "Element": "",
             "Metal": "Lead",
             "Divinatory": "Fatality, Black Magic",
             "Inner Meaning": "BALANCE"
@@ -409,7 +687,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Mars",
             "Hebrew": "Ayin (ע)",
             "Color": "Red",
-            "Element": "Fire",
+            "Element": "",
             "Metal": "Iron",
             "Divinatory": "Accident, Catastrophe",
             "Inner Meaning": "I KNOW"
@@ -449,7 +727,7 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Moon",
             "Hebrew": "Resh (ר)",
             "Color": "Green",
-            "Element": "Water",
+            "Element": "",
             "Metal": "Silver",
             "Divinatory": "Awakening, Resurrection",
             "Inner Meaning": "I USE"
@@ -459,17 +737,17 @@ class ChurchOfLightTarotPromptBuilder {
             "Astrological": "Sun",
             "Hebrew": "Shin (ש)",
             "Color": "Orange",
-            "Element": "Fire",
+            "Element": "",
             "Metal": "Gold",
             "Divinatory": "Success, Attainment",
             "Inner Meaning": "I KNOW"
         ],
         "The Fool": [
             "Arcanum": "XXII or 0",
-            "Astrological": "Earth/Pluto",
+            "Astrological": "Pluto",
             "Hebrew": "Tau (ת)",
             "Color": "Black/Ultra Violet",
-            "Element": "Earth",
+            "Element": "",
             "Metal": "Clay/Plutonium",
             "Divinatory": "Spirituality, Folly",
             "Inner Meaning": "ORGANIZATION"
@@ -679,98 +957,98 @@ class ChurchOfLightTarotPromptBuilder {
         "Ace of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Earthy Energy",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "A Short Journey",
             "Inner Meaning": "POLICY"
         ],
         "Two of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Labor",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Money Acquired by Hard Labor",
             "Inner Meaning": "INDEPENDENCE"
         ],
         "Three of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Money Marriage",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Marriage for Money",
             "Inner Meaning": "EXPIATION"
         ],
         "Four of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Money Through Partner",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Money Received Through a Partner",
             "Inner Meaning": "ORIGINALITY"
         ],
         "Five of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Abundant Wealth",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Abundant Wealth",
             "Inner Meaning": "INSPIRATION"
         ],
         "Six of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Social Event",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "A Social Event",
             "Inner Meaning": "REPRESSION"
         ],
         "Seven of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Money Through Journey",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Money Earned Through a Journey",
             "Inner Meaning": "INTUITION"
         ],
         "Eight of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Law Suit",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "A Costly Law Suit",
             "Inner Meaning": "FIDELITY"
         ],
         "Nine of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Money Spent on Associates",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Money Spent on Associates",
             "Inner Meaning": "REASON"
         ],
         "Ten of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Financial Loss and Gain",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Alternate Financial Loss and Gain",
             "Inner Meaning": "ASPIRATION"
         ],
         "King of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Intelligent, Restless, Fickle",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "An intelligent, restless, and fickle man",
             "Inner Meaning": "I THINK"
         ],
         "Queen of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Good, High-Minded, Noble",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "A good, high-minded, noble, and amiable woman",
             "Inner Meaning": "BALANCE"
         ],
         "Youth of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Witty, Argumentative, Refined",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "A witty, argumentative, and refined youth",
             "Inner Meaning": "I KNOW"
         ],
         "Horseman of Coins": [
             "Suit": "Coins (Pentacles)",
             "Astrological": "Thoughts of Money",
-            "Element": "Earth",
+            "Element": "Air",
             "Divinatory": "Thoughts of Health, Money, and Business",
             "Inner Meaning": "ASPIRATION"
         ],
@@ -779,105 +1057,252 @@ class ChurchOfLightTarotPromptBuilder {
         "Ace of Swords": [
             "Suit": "Swords",
             "Astrological": "Airy Energy",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "News of Sickness or Death",
             "Inner Meaning": "ORGANIZATION"
         ],
         "Two of Swords": [
             "Suit": "Swords",
             "Astrological": "Sickness",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Sickness Through Overwork",
             "Inner Meaning": "MARTYRDOM"
         ],
         "Three of Swords": [
             "Suit": "Swords",
             "Astrological": "Lawsuit or Divorce",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Lawsuit or Divorce",
             "Inner Meaning": "IDEALISM"
         ],
         "Four of Swords": [
             "Suit": "Swords",
             "Astrological": "Remorse",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Remorse for Past Action",
             "Inner Meaning": "DETERMINATION"
         ],
         "Five of Swords": [
             "Suit": "Swords",
             "Astrological": "Escape from Danger",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Escape from Danger",
             "Inner Meaning": "STRUGGLE"
         ],
         "Six of Swords": [
             "Suit": "Swords",
             "Astrological": "Dissipation",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Dissipation",
             "Inner Meaning": "MASTERSHIP"
         ],
         "Seven of Swords": [
             "Suit": "Swords",
             "Astrological": "Danger Through Travel",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Danger Through Travel or Sport",
             "Inner Meaning": "ACHIEVEMENT"
         ],
         "Eight of Swords": [
             "Suit": "Swords",
             "Astrological": "Loss of Honor",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Loss of Honor or Business Failure",
             "Inner Meaning": "EXPERIENCE"
         ],
         "Nine of Swords": [
             "Suit": "Swords",
             "Astrological": "Quarrel",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Quarrel Resulting in Enmity",
             "Inner Meaning": "RENUNCIATION"
         ],
         "Ten of Swords": [
             "Suit": "Swords",
             "Astrological": "Sudden Loss",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Sudden Loss of Employment",
             "Inner Meaning": "PRACTICALITY"
         ],
         "King of Swords": [
             "Suit": "Swords",
             "Astrological": "Reserved, Sullen, Practical",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "A reserved, sullen, and practical man",
             "Inner Meaning": "I HAVE"
         ],
         "Queen of Swords": [
             "Suit": "Swords",
             "Astrological": "Studious, Even-Tempered",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "A studious, even-tempered, and ingenious woman",
             "Inner Meaning": "I ANALYZE"
         ],
         "Youth of Swords": [
             "Suit": "Swords",
             "Astrological": "Crafty, Selfish, Avaricious",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "A crafty, selfish, reserved, and avaricious youth",
             "Inner Meaning": "I USE"
         ],
         "Horseman of Swords": [
             "Suit": "Swords",
             "Astrological": "Thoughts of Strife",
-            "Element": "Air",
+            "Element": "Earth",
             "Divinatory": "Thoughts of Strife or Sickness",
             "Inner Meaning": "PRACTICALITY"
         ]
     ]
 
     // MARK: - Methods
+    /// Function to build a prompt for a 5-card Yes/No spread
+    /// Function to build a prompt for a 5-card Yes/No spread
+    func buildYesNoSpread(question: String, cardNames: [String]) -> String {
+        // Validate we have exactly 5 cards
+        guard cardNames.count == 5 else {
+            return "Error: Yes/No spread requires exactly 5 cards."
+        }
 
+        // Define positions for 5-card yes/no spread (right to left)
+        let positions = ["Distant Past", "Recent Past", "Present", "Near Future", "Distant Future"]
+
+        // Calculate yes/no score
+        var yesNoScore = 0
+        var cardOrientations: [Bool] = [] // true = upright, false = reversed
+
+        for (index, cardName) in cardNames.enumerated() {
+            let isReversed = cardName.lowercased().contains("reversed")
+            cardOrientations.append(!isReversed)
+
+            // Middle card (Present) is worth 2 points
+            if index == 2 {
+                yesNoScore += isReversed ? -2 : 2
+            } else {
+                yesNoScore += isReversed ? -1 : 1
+            }
+        }
+
+        // Determine overall answer
+        let overallAnswer: String
+        if yesNoScore > 0 {
+            overallAnswer = "Yes"
+        } else if yesNoScore < 0 {
+            overallAnswer = "No"
+        } else {
+            overallAnswer = "Maybe"
+        }
+
+        // Start building the prompt
+        var prompt = """
+        # HERMETIC YES/NO TAROT READING
+        
+        ## Question
+        "\(question)"
+        
+        ## Spread
+        Five-Card Yes/No Spread (read right to left)
+        
+        ## Cards in Position
+        
+        """
+
+        // Add each card with detailed correspondences
+        for (index, cardName) in cardNames.enumerated() {
+            let position = positions[index]
+            let normalizedCardName = normalizeCardName(cardName)
+            let isReversed = cardName.lowercased().contains("reversed")
+
+            // Add position and card information
+            prompt += """
+            
+            ### Position \(index + 1): \(position)
+            Card: \(cardName)
+            
+            """
+
+            // Add correspondences if available
+            if let cardInfo = cardCorrespondences[normalizedCardName] {
+                prompt += "**Church of Light Correspondences:**\n"
+
+                // Add astrological correspondence (primary focus as requested)
+                if let astrological = cardInfo["Astrological"] {
+                    prompt += "- Astrological: \(astrological)\n"
+                }
+
+                // Include court card zodiac correspondences if applicable
+                if normalizedCardName.contains("King of") ||
+                   normalizedCardName.contains("Queen of") ||
+                   normalizedCardName.contains("Youth of") {
+
+                    let zodiacSign = getCourtCardZodiacSign(normalizedCardName)
+                    prompt += "- Zodiac Sign: \(zodiacSign)\n"
+
+                    // Add information about reversed court cards representing opposite gender
+                    if isReversed {
+                        prompt += "- Represents: Person of opposite sex with \(zodiacSign) qualities\n"
+                    } else {
+                        prompt += "- Represents: Person with \(zodiacSign) qualities\n"
+                    }
+                }
+
+                // Add orientation value for yes/no calculation
+                if index == 2 { // Middle card
+                    prompt += "- Yes/No Value: \(isReversed ? "-2 (No)" : "+2 (Yes)")\n"
+                } else {
+                    prompt += "- Yes/No Value: \(isReversed ? "-1 (No)" : "+1 (Yes)")\n"
+                }
+            }
+        }
+
+        // Add numeric score (but don't reveal overall answer yet)
+        prompt += """
+        
+        ## Yes/No Calculation
+        Total score: \(yesNoScore)
+        
+        ## Interpretation Guidelines
+        
+        Please provide a Church of Light hermetic interpretation of this Yes/No spread that:
+        
+        1. **Tells the story revealed by the cards** through a narrative that flows from distant past to distant future:
+           - Begin with a compelling introduction that sets the cosmic stage for the question
+           - Weave together the astrological influences into a cohesive narrative
+           - Adapt the interpretation to the specific context of the question (sports, relationships, career, etc.)
+           - Explain what each card reveals about the querent's journey
+           
+        2. **Card-by-Card Interpretation** within the narrative:
+           - Focus primarily on each card's astrological correspondence
+           - For court cards, identify the specific zodiac sign influences and if reversed, note the person is of the opposite gender
+           - Explain how each card's energy manifests in the specific context of the question
+           
+        3. **Highlight Astrological Patterns**:
+           - Which planets or signs predominate?
+           - How these cosmic forces are shaping the querent's circumstances
+           
+        4. **Conclude with the answer**: Only at the end, reveal whether the answer is Yes, No, or Maybe, tying this conclusion to the narrative you've presented.
+        
+        Keep your interpretation dignified while adapting to the specific context of the question. Remember that "the stars impel, they do not compel" - emphasize the querent's free will in working with these cosmic forces.
+        """
+
+        return prompt
+    }
+
+    /// Helper function to get zodiac sign for court cards
+    private func getCourtCardZodiacSign(_ cardName: String) -> String {
+        if cardName.contains("King of Scepters") { return "Aries" }
+        else if cardName.contains("King of Swords") { return "Taurus" }
+        else if cardName.contains("King of Coins") { return "Gemini" }
+        else if cardName.contains("King of Cups") { return "Cancer" }
+        else if cardName.contains("Queen of Scepters") { return "Leo" }
+        else if cardName.contains("Queen of Swords") { return "Virgo" }
+        else if cardName.contains("Queen of Coins") { return "Libra" }
+        else if cardName.contains("Queen of Cups") { return "Scorpio" }
+        else if cardName.contains("Youth of Scepters") { return "Sagittarius" }
+        else if cardName.contains("Youth of Swords") { return "Capricorn" }
+        else if cardName.contains("Youth of Coins") { return "Aquarius" }
+        else if cardName.contains("Youth of Cups") { return "Pisces" }
+        else { return "Unknown" }
+    }
     /// Builds a comprehensive tarot reading prompt for the AI model based on Church of Light principles
     func buildPrompt(question: String, spreadName: String, cardNames: [String]) -> String {
         // Get spread positions based on the spread name
@@ -1378,4 +1803,188 @@ class TarotSettingsViewController: UIViewController {
         }
     }
 
+}
+
+
+// RiderWaiteTarotCard struct
+struct RiderWaiteTarotCard: Identifiable {
+    let id = UUID()
+    let name: String
+    let arcanum: String?
+    let element: String?
+    let astrological: String?
+    let keywords: String?
+    let meaning: String?
+    let reversedMeaning: String?
+    let suit: String?
+    let isReversed: Bool
+
+    static func from(dictionary: [String: String], name: String, isReversed: Bool = false) -> RiderWaiteTarotCard {
+        return RiderWaiteTarotCard(
+            name: name,
+            arcanum: dictionary["Arcanum"],
+            element: dictionary["Element"],
+            astrological: dictionary["Astrological"],
+            keywords: dictionary["Keywords"],
+            meaning: dictionary["Meaning"],
+            reversedMeaning: dictionary["Reversed"],
+            suit: dictionary["Suit"],
+            isReversed: isReversed
+        )
+    }
+}
+
+// RiderWaiteDeckManager class
+class RiderWaiteDeckManager {
+    var deck: [RiderWaiteTarotCard] = []
+
+    // Dictionary of Rider-Waite card correspondences
+    let cardCorrespondences: [String: [String: String]] = [
+        // Major Arcana
+        "The Fool": [
+            "Arcanum": "0",
+            "Element": "Air",
+            "Astrological": "Uranus",
+            "Keywords": "Beginnings, innocence, spontaneity, freedom",
+            "Meaning": "New beginnings, faith in the universe, innocence, spontaneity",
+            "Reversed": "Recklessness, risk-taking, inconsideration"
+        ],
+        "The Magician": [
+            "Arcanum": "1",
+            "Element": "Air",
+            "Astrological": "Mercury",
+            "Keywords": "Manifestation, power, action, resourcefulness",
+            "Meaning": "Manifestation, resourcefulness, power, inspired action",
+            "Reversed": "Manipulation, poor planning, untapped talents"
+        ],
+        // Add remaining cards here
+    ]
+
+    init() {
+        createDeck()
+    }
+
+    private func createDeck() {
+        deck = []
+
+        // Add all cards from correspondences
+        for (cardName, attributes) in cardCorrespondences {
+            let isReversed = Bool.random() // 50% chance of being reversed
+            let card = RiderWaiteTarotCard.from(dictionary: attributes, name: cardName, isReversed: isReversed)
+            deck.append(card)
+        }
+    }
+
+    func shuffleAndCut() {
+        deck.shuffle()
+        // Simulate cutting the deck
+        let cutPoint = Int.random(in: 10...(deck.count - 10))
+        let topPortion = Array(deck[0..<cutPoint])
+        let bottomPortion = Array(deck[cutPoint..<deck.count])
+        deck = bottomPortion + topPortion
+    }
+}
+
+// RiderWaiteTarotPromptBuilder class - simplified approach
+class RiderWaiteTarotPromptBuilder {
+    // Function to build a 5-card Yes/No spread for Rider-Waite
+    func buildYesNoSpread(question: String, cardNames: [String]) -> String {
+        // Validate we have exactly 5 cards
+        guard cardNames.count == 5 else {
+            return "Error: Yes/No spread requires exactly 5 cards."
+        }
+
+        // Define positions for 5-card yes/no spread (right to left)
+        let positions = ["Distant Past", "Recent Past", "Present", "Near Future", "Distant Future"]
+
+        // Calculate yes/no score
+        var yesNoScore = 0
+
+        for (index, cardName) in cardNames.enumerated() {
+            let isReversed = cardName.lowercased().contains("reversed")
+
+            // Middle card (Present) is worth 2 points
+            if index == 2 {
+                yesNoScore += isReversed ? -2 : 2
+            } else {
+                yesNoScore += isReversed ? -1 : 1
+            }
+        }
+
+        // Start building the prompt
+        var prompt = """
+        # RIDER-WAITE TAROT YES/NO READING
+        
+        ## Question
+        "\(question)"
+        
+        ## Spread
+        Five-Card Yes/No Spread (read right to left)
+        
+        ## Cards in Position
+        
+        """
+
+        // Add each card with its position and orientation
+        for (index, cardName) in cardNames.enumerated() {
+            let position = positions[index]
+            let isReversed = cardName.lowercased().contains("reversed")
+
+            // Add position and card information
+            prompt += """
+            
+            ### Position \(index + 1): \(position)
+            Card: \(cardName)
+            
+            """
+
+            // Add orientation value for yes/no calculation
+            if index == 2 { // Middle card
+                prompt += "Yes/No Value: \(isReversed ? "-2 (No)" : "+2 (Yes)")\n"
+            } else {
+                prompt += "Yes/No Value: \(isReversed ? "-1 (No)" : "+1 (Yes)")\n"
+            }
+        }
+
+        // Add numeric score (but don't reveal overall answer yet)
+        prompt += """
+        
+        ## Yes/No Calculation
+        Total score: \(yesNoScore)
+        
+        ## Interpretation Guidelines
+        
+        Please provide a Rider-Waite tarot interpretation of this Yes/No spread that:
+        
+        1. **Tells the story revealed by the cards** through a narrative that flows from distant past to distant future:
+           - Begin with a compelling introduction that sets the stage for the question
+           - Weave together the influences into a cohesive narrative
+           - Adapt the interpretation to the specific context of the question (sports, relationships, career, etc.)
+           - Explain what each card reveals about the querent's journey
+           
+        2. **Card-by-Card Interpretation** within the narrative:
+           - Focus on the traditional Rider-Waite meanings of each card
+           - Explain how each card's meaning manifests in the specific context of the question
+           - Consider both upright and reversed meanings
+           
+        3. **Highlight Element and Astrological Patterns**:
+           - Which elements or astrological influences predominate?
+           - How these forces are shaping the querent's circumstances
+           
+        4. **Integrate the narrative** with the spread positions to show how past influences lead to future outcomes
+        
+        5. **Conclude with the answer**: At the end of your interpretation, provide the final Yes, No, or Maybe answer based on the calculated score and the overall energy of the reading.
+        
+        Keep your interpretation clear and accessible, balancing traditional tarot wisdom with practical insights relevant to the question.
+        """
+
+        return prompt
+    }
+
+    // Helper to normalize card names
+    private func normalizeCardName(_ cardName: String) -> String {
+        return cardName.replacingOccurrences(of: " (Reversed)", with: "")
+                      .replacingOccurrences(of: " reversed", with: "")
+                      .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }

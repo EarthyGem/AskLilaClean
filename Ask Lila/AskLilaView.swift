@@ -167,76 +167,72 @@ class MyAgentChatController: UIViewController {
         print("💾 Started new conversation: \(conversationId)")
     }
 
-//    private func setupNavigationBar() {
-//        let calendarIcon = UIImage(systemName: "calendar")
-//        let personIcon = UIImage(systemName: "person.2")
-//        let aiIcon = UIImage(systemName: "brain.head.profile")
-//        let gearIcon = UIImage(systemName: "gearshape")
-//        let storyIcon = UIImage(systemName: "book.pages")
-//        let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal")
-//        let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
-//
-//        let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
-//        let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
-//        let showStoryButton = UIBarButtonItem(image: storyIcon, style: .plain, target: self, action: #selector(showSouthNodeStoryTapped))
-//
-//        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
-//        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
-//        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
-//        let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
-//
-//        // 👇 This is the key part: assign the array directly
-//        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
-//        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, showStatsButton]
-//    }
 
     private func setupNavigationBar() {
-           // Soulful symbols and icons
-           let calendarIcon = UIImage(systemName: "calendar")
-           let personIcon = UIImage(systemName: "person.2")
-           let aiIcon = UIImage(systemName: "brain.head.profile")
-           let gearIcon = UIImage(systemName: "gearshape")
-           let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
+        // Soulful symbols and icons
+        let calendarIcon = UIImage(systemName: "calendar")
+        let personIcon = UIImage(systemName: "person.2")
+        let aiIcon = UIImage(systemName: "brain.head.profile")
+        let gearIcon = UIImage(systemName: "gearshape")
+        let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
 
-           // 📖 Big storybook emoji for South Node Story
-           let storyLabel = UILabel()
-           storyLabel.text = "📖"
-           storyLabel.font = UIFont.systemFont(ofSize: 28)
-           storyLabel.isUserInteractionEnabled = true
-           let storyTapGesture = UITapGestureRecognizer(target: self, action: #selector(showSouthNodeStoryTapped))
-           storyLabel.addGestureRecognizer(storyTapGesture)
-           let showStoryButton = UIBarButtonItem(customView: storyLabel)
+        // 📖 Big storybook emoji for South Node Story
+        let storyLabel = UILabel()
+        storyLabel.text = "📖"
+        storyLabel.font = UIFont.systemFont(ofSize: 28)
+        storyLabel.isUserInteractionEnabled = true
+        let storyTapGesture = UITapGestureRecognizer(target: self, action: #selector(showSouthNodeStoryTapped))
+        storyLabel.addGestureRecognizer(storyTapGesture)
+        let showStoryButton = UIBarButtonItem(customView: storyLabel)
 
-           // 🧚🏿‍♂️ Soulful fairy emoji for Soul Stats
-           let fairyLabel = UILabel()
-           fairyLabel.text = "🧚🏿‍♂️"
-           fairyLabel.font = UIFont.systemFont(ofSize: 28)
-           fairyLabel.sizeToFit()
-           fairyLabel.isUserInteractionEnabled = true
-           let statsTapGesture = UITapGestureRecognizer(target: self, action: #selector(showStatsTapped))
-           fairyLabel.addGestureRecognizer(statsTapGesture)
-           let statsButton = UIBarButtonItem(customView: fairyLabel)
+        // 🧚🏿‍♂️ Soulful fairy emoji for Soul Stats
+        let fairyLabel = UILabel()
+        fairyLabel.text = "🧚🏿‍♂️"
+        fairyLabel.font = UIFont.systemFont(ofSize: 28)
+        fairyLabel.sizeToFit()
+        fairyLabel.isUserInteractionEnabled = true
+        let statsTapGesture = UITapGestureRecognizer(target: self, action: #selector(showStatsTapped))
+        fairyLabel.addGestureRecognizer(statsTapGesture)
+        let statsButton = UIBarButtonItem(customView: fairyLabel)
 
-           // Other buttons
-           let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
-           let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
-           let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
-           let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
-           let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
+        // 🎴 Tarot cards emoji for Yes/No Tarot Reading
+        let tarotLabel = UILabel()
+        tarotLabel.text = "🎴"  // Alternatively, could use "🔮" (crystal ball)
+        tarotLabel.font = UIFont.systemFont(ofSize: 28)
+        tarotLabel.sizeToFit()
+        tarotLabel.isUserInteractionEnabled = true
+        let tarotTapGesture = UITapGestureRecognizer(target: self, action: #selector(showTarotYesNoTapped))
+        tarotLabel.addGestureRecognizer(tarotTapGesture)
+        let tarotButton = UIBarButtonItem(customView: tarotLabel)
 
-           // 🌼 Add buttons to navigation bar
-           navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
-           navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, statsButton]
+        // Other buttons
+        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
+        let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
+        let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
+        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
+        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
 
-           updateAIServiceIndicator()
-       }
+        // 🌼 Add buttons to navigation bar
+        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton, tarotButton]
+        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, statsButton]
 
+        updateAIServiceIndicator()
+    }
+
+
+    // Add this method to handle the tarot button tap
+    @objc private func showTarotYesNoTapped() {
+        let tarotVC = YesNoTarotViewController()
+        let navController = UINavigationController(rootViewController: tarotVC)
+        navController.modalPresentationStyle = .pageSheet
+        present(navController, animated: true, completion: nil)
+    }
 
     
     @objc private func showConversationHistory() {
         // Present the AI service selector
         let historyVC = ConversationHistoryViewController()
-  
+
         let navController = UINavigationController(rootViewController: historyVC)
         present(navController, animated: true)
     }
