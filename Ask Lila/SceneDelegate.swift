@@ -1,7 +1,7 @@
 import UIKit
 import SwiftEphemeris
 import CoreData
-
+import AppTrackingTransparency
 class SceneDelegate: UIResponder, UIWindowSceneDelegate, LoginDelegate, UserProfileDelegate {
     var window: UIWindow?
     var chartCake: ChartCake?
@@ -152,11 +152,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, LoginDelegate, UserProf
     }
     // Save chartCake to UserDefaults
     
-    
-    
+    func requestTrackingPermissionIfNeeded() {
+        if #available(iOS 14.5, *) {
+            let status = ATTrackingManager.trackingAuthorizationStatus
+            if status == .notDetermined {
+                ATTrackingManager.requestTrackingAuthorization { status in
+                    print("✅ ATT status: \(status.rawValue)")
+                    UserDefaults.standard.set(status.rawValue, forKey: "attStatus")
+                }
+            } else {
+                print("ℹ️ ATT already determined: \(status.rawValue)")
+            }
+        } else {
+            print("ℹ️ ATT not supported on this iOS version")
+        }
+    }
     // Other SceneDelegate lifecycle methods
     func sceneDidDisconnect(_ scene: UIScene) {}
-    func sceneDidBecomeActive(_ scene: UIScene) {}
+
     func sceneWillResignActive(_ scene: UIScene) {}
     func sceneWillEnterForeground(_ scene: UIScene) {}
     func sceneDidEnterBackground(_ scene: UIScene) {
@@ -246,20 +259,52 @@ extension SceneDelegate: EditChartViewControllerDelegate {
     
     
 
+    // Replace this method in SceneDelegate.swift
     func showEditChartScreen() {
-        guard let nav = window?.rootViewController as? UINavigationController,
-              let agentChat = nav.viewControllers.first(where: { $0 is MyAgentChatController }) as? MyAgentChatController
-        else {
-            print("⚠️ Could not locate MyAgentChatController")
-            return
-        }
-
+        print("🔧 showEditChartScreen called in SceneDelegate")
+        
+        // Don't look for MyAgentChatController - instead use the current chartCake directly
         let editVC = EditChartViewController()
-        editVC.chartCake = agentChat.chartCake
+        editVC.chartCake = self.chartCake
         editVC.delegate = self
-        nav.pushViewController(editVC, animated: true)
+        
+        // Get the current topmost view controller and present from there
+        if let rootVC = window?.rootViewController {
+            let topmostVC = getTopmostViewController(from: rootVC)
+            print("🔍 Found topmost ViewController: \(type(of: topmostVC))")
+            
+            // Present modally instead of pushing
+            let navController = UINavigationController(rootViewController: editVC)
+            topmostVC.present(navController, animated: true) {
+                print("✅ Edit chart screen presented successfully")
+            }
+        } else {
+            print("❌ No root view controller found")
+        }
     }
 
+    // Add this helper method to SceneDelegate
+    func getTopmostViewController(from viewController: UIViewController) -> UIViewController {
+        // If it's a navigation controller, get the visible view controller
+        if let navigationController = viewController as? UINavigationController {
+            return getTopmostViewController(from: navigationController.visibleViewController ?? viewController)
+        }
+        
+        // If it's a tab controller, get the selected view controller
+        if let tabController = viewController as? UITabBarController {
+            if let selected = tabController.selectedViewController {
+                return getTopmostViewController(from: selected)
+            }
+        }
+        
+        // If it's presenting something, get the presented view controller
+        if let presented = viewController.presentedViewController {
+            return getTopmostViewController(from: presented)
+        }
+        
+        // Otherwise, return the view controller itself
+        return viewController
+    }
     func didUpdateChart(birthDate: Date, latitude: Double, longitude: Double, name: String) {
         // Recalculate the chart
         let timeZone = TimeZone.current // Or get from existing logic
@@ -279,4 +324,14 @@ extension SceneDelegate: EditChartViewControllerDelegate {
             agentChat.viewDidLoad() // reload UI with new chart
         }
     }
+    
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        print("🌱 Scene became active")
+
+        // Delay a little to avoid race conditions at app startup
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.requestTrackingPermissionIfNeeded()
+        }
+    }
+
 }

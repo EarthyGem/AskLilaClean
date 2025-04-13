@@ -8,6 +8,7 @@
 import UIKit
 import CoreData
 import FirebaseCore
+import AppTrackingTransparency
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -177,5 +178,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func logoutUser() {
         // Remove user ID from UserDefaults
         UserDefaults.standard.removeObject(forKey: "currentUserId")
+    }
+}
+
+extension AppDelegate {
+    // This will be called when app moves to the foreground
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // Delay the request to avoid interfering with app startup
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            if #available(iOS 14.5, *) {
+                ATTrackingManager.requestTrackingAuthorization(completionHandler: { _ in })
+            }
+        }
     }
 }

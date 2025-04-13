@@ -1057,71 +1057,70 @@ class SouthNodeStoryViewController: UIViewController {
     private func setupStoryView() {
         view.addSubview(storyView)
         storyView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         storyView.addSubview(storyScrollView)
         storyScrollView.translatesAutoresizingMaskIntoConstraints = false
         storyScrollView.isScrollEnabled = true
-        
+
         storyScrollView.addSubview(storyContentView)
         storyContentView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         storyContentView.addSubview(storyTitleLabel)
         storyContentView.addSubview(storyInfoLabel)
         storyContentView.addSubview(storyTextView)
         storyContentView.addSubview(shareButton)
         storyContentView.addSubview(askLilaButton)
         storyContentView.addSubview(backToSettingsButton)
-        
-        // Make sure text is visible
+
+        // ✨ Make the text view expand to fit content instead of scrolling inside itself
+        storyTextView.isScrollEnabled = false
         storyTextView.textColor = .black
-        storyTextView.isScrollEnabled = true // Disable scroll on the text view since we're scrolling the parent
-        
+
         NSLayoutConstraint.activate([
             // Story view (full screen)
             storyView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             storyView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             storyView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             storyView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            
-            // Story scroll view
+
+            // Scroll view fills the story view
             storyScrollView.topAnchor.constraint(equalTo: storyView.topAnchor),
             storyScrollView.leadingAnchor.constraint(equalTo: storyView.leadingAnchor),
             storyScrollView.trailingAnchor.constraint(equalTo: storyView.trailingAnchor),
             storyScrollView.bottomAnchor.constraint(equalTo: storyView.bottomAnchor),
-            
-            // Story content view
+
+            // Content inside scroll view
             storyContentView.topAnchor.constraint(equalTo: storyScrollView.topAnchor),
             storyContentView.leadingAnchor.constraint(equalTo: storyScrollView.leadingAnchor),
             storyContentView.trailingAnchor.constraint(equalTo: storyScrollView.trailingAnchor),
             storyContentView.bottomAnchor.constraint(equalTo: storyScrollView.bottomAnchor),
             storyContentView.widthAnchor.constraint(equalTo: storyScrollView.widthAnchor),
-            
-            // Story title
+
+            // Title
             storyTitleLabel.topAnchor.constraint(equalTo: storyContentView.topAnchor, constant: 20),
             storyTitleLabel.leadingAnchor.constraint(equalTo: storyContentView.leadingAnchor, constant: 20),
             storyTitleLabel.trailingAnchor.constraint(equalTo: storyContentView.trailingAnchor, constant: -20),
-            
-            // Story info
+
+            // Info
             storyInfoLabel.topAnchor.constraint(equalTo: storyTitleLabel.bottomAnchor, constant: 8),
             storyInfoLabel.leadingAnchor.constraint(equalTo: storyContentView.leadingAnchor, constant: 20),
             storyInfoLabel.trailingAnchor.constraint(equalTo: storyContentView.trailingAnchor, constant: -20),
-            
+
             // Share button
             shareButton.topAnchor.constraint(equalTo: storyInfoLabel.bottomAnchor, constant: 12),
             shareButton.trailingAnchor.constraint(equalTo: storyContentView.trailingAnchor, constant: -20),
             shareButton.widthAnchor.constraint(equalToConstant: 44),
             shareButton.heightAnchor.constraint(equalToConstant: 44),
-            
-            // Story text - increased height
+
+            // 🌿 Expanded story text (no height constraint, just let it flow)
             storyTextView.topAnchor.constraint(equalTo: shareButton.bottomAnchor, constant: 8),
             storyTextView.leadingAnchor.constraint(equalTo: storyContentView.leadingAnchor, constant: 20),
             storyTextView.trailingAnchor.constraint(equalTo: storyContentView.trailingAnchor, constant: -20),
-            storyTextView.heightAnchor.constraint(equalToConstant: 600), // Increased height
-            
-            // Ask Lila button - directly below the text
+
+            // Ask Lila button
             askLilaButton.topAnchor.constraint(equalTo: storyTextView.bottomAnchor, constant: 20),
             askLilaButton.centerXAnchor.constraint(equalTo: storyContentView.centerXAnchor),
-            
+
             // Back to settings button
             backToSettingsButton.topAnchor.constraint(equalTo: askLilaButton.bottomAnchor, constant: 16),
             backToSettingsButton.centerXAnchor.constraint(equalTo: storyContentView.centerXAnchor),

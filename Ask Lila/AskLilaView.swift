@@ -166,6 +166,7 @@ class MyAgentChatController: UIViewController {
 
         print("💾 Started new conversation: \(conversationId)")
     }
+<<<<<<< Updated upstream
     private func setupNavigationBar() {
         let calendarIcon = UIImage(systemName: "calendar")
         let personIcon = UIImage(systemName: "person.2")
@@ -188,6 +189,49 @@ class MyAgentChatController: UIViewController {
         navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
         navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, showStatsButton]
     }
+=======
+
+    private func setupNavigationBar() {
+           // Soulful symbols and icons
+           let calendarIcon = UIImage(systemName: "calendar")
+           let personIcon = UIImage(systemName: "person.2")
+           let aiIcon = UIImage(systemName: "brain.head.profile")
+           let gearIcon = UIImage(systemName: "gearshape")
+           let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
+
+           // 📖 Big storybook emoji for South Node Story
+           let storyLabel = UILabel()
+           storyLabel.text = "📖"
+           storyLabel.font = UIFont.systemFont(ofSize: 28)
+           storyLabel.isUserInteractionEnabled = true
+           let storyTapGesture = UITapGestureRecognizer(target: self, action: #selector(showSouthNodeStoryTapped))
+           storyLabel.addGestureRecognizer(storyTapGesture)
+           let showStoryButton = UIBarButtonItem(customView: storyLabel)
+
+           // 🧚🏿‍♂️ Soulful fairy emoji for Soul Stats
+           let fairyLabel = UILabel()
+           fairyLabel.text = "🧚🏿‍♂️"
+           fairyLabel.font = UIFont.systemFont(ofSize: 28)
+           fairyLabel.sizeToFit()
+           fairyLabel.isUserInteractionEnabled = true
+           let statsTapGesture = UITapGestureRecognizer(target: self, action: #selector(showStatsTapped))
+           fairyLabel.addGestureRecognizer(statsTapGesture)
+           let statsButton = UIBarButtonItem(customView: fairyLabel)
+
+           // Other buttons
+           let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
+           let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
+           let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
+           let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
+           let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
+
+           // 🌼 Add buttons to navigation bar
+           navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
+           navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, statsButton]
+
+           updateAIServiceIndicator()
+       }
+>>>>>>> Stashed changes
 
     
     @objc private func showConversationHistory() {
@@ -534,9 +578,8 @@ class MyAgentChatController: UIViewController {
         addSystemMessage("📊 Here's a deep dive into your astro-soul story — including your evolutionary tone, learning arenas, and your radiant path.")
     }
 
-
-    
     @objc private func editChartTapped() {
+<<<<<<< Updated upstream
         print("🛠️ Edit tapped — attempting to call SceneDelegate...")
 
         if let windowScene = view.window?.windowScene,
@@ -545,6 +588,18 @@ class MyAgentChatController: UIViewController {
             sceneDelegate.showEditChartScreen()
         } else {
             print("⚠️ SceneDelegate is nil or not ready")
+=======
+        print("Edit button tapped - using direct approach")
+        
+        // Simple direct approach: Create and present the edit view controller directly
+        let editVC = EditChartViewController()
+        editVC.chartCake = self.chartCake
+        
+        // Present modally with a navigation controller
+        let navController = UINavigationController(rootViewController: editVC)
+        present(navController, animated: true) {
+            print("✅ Edit chart screen presented successfully")
+>>>>>>> Stashed changes
         }
     }
 
