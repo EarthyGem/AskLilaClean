@@ -294,20 +294,19 @@ class YesNoTarotViewController: UIViewController {
             }
         }
     }
-
     // Flip animation for Church of Light cards
     private func flipChurchOfLightCards() {
-        // Flip cards one by one with a delay
+        // Flip cards one by one with a delay, starting from the rightmost card (index 0)
         for (index, card) in dealtCards.enumerated() {
             // Get image name from the card
             let imageName = getChurchOfLightImageName(card)
 
-            // Delay flipping each card by 0.5 seconds * index
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.5) { [weak self] in
+            // Delay flipping each card by 0.5 seconds * (4-index) to start from right
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(4-index) * 0.5) { [weak self] in
                 guard let self = self else { return }
 
-                // Perform flip animation
-                UIView.transition(with: self.cardViews[index], duration: 0.5, options: .transitionFlipFromLeft, animations: {
+                // Perform flip animation top to bottom
+                UIView.transition(with: self.cardViews[index], duration: 0.5, options: .transitionFlipFromTop, animations: {
                     // Change the image to the card front during the animation
                     self.cardViews[index].image = UIImage(named: imageName)
 
@@ -322,17 +321,17 @@ class YesNoTarotViewController: UIViewController {
 
     // Flip animation for Rider-Waite cards
     private func flipRiderWaiteCards() {
-        // Flip cards one by one with a delay
+        // Flip cards one by one with a delay, starting from the rightmost card (index 0)
         for (index, card) in dealtRiderWaiteCards.enumerated() {
             // Get image name from the card
             let imageName = getRiderWaiteImageName(card)
 
-            // Delay flipping each card by 0.5 seconds * index
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.5) { [weak self] in
+            // Delay flipping each card by 0.5 seconds * (4-index) to start from right
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(4-index) * 0.5) { [weak self] in
                 guard let self = self else { return }
 
-                // Perform flip animation
-                UIView.transition(with: self.cardViews[index], duration: 0.5, options: .transitionFlipFromLeft, animations: {
+                // Perform flip animation top to bottom
+                UIView.transition(with: self.cardViews[index], duration: 0.5, options: .transitionFlipFromTop, animations: {
                     // Change the image to the card front during the animation
                     self.cardViews[index].image = UIImage(named: imageName)
 
@@ -344,7 +343,6 @@ class YesNoTarotViewController: UIViewController {
             }
         }
     }
-
     // Get image name for Church of Light card
     private func getChurchOfLightImageName(_ card: ChurchOfLightTarotCard) -> String {
         // Major Arcana naming: col_majorXX
@@ -1875,14 +1873,12 @@ class RiderWaiteDeckManager {
         }
     }
 
-    func shuffleAndCut() {
-        deck.shuffle()
-        // Simulate cutting the deck
-        let cutPoint = Int.random(in: 10...(deck.count - 10))
-        let topPortion = Array(deck[0..<cutPoint])
-        let bottomPortion = Array(deck[cutPoint..<deck.count])
-        deck = bottomPortion + topPortion
+    func shuffleAndCut(times: Int = 3) {
+        for _ in 0..<times {
+            deck.shuffle()
+        }
     }
+
 }
 
 // RiderWaiteTarotPromptBuilder class - simplified approach

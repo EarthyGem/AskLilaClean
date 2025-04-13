@@ -34,6 +34,8 @@
 		3988525D2DAAE92D0000470F /* Tarot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525C2DAAE92D0000470F /* Tarot.swift */; };
 		3988525F2DAAEC0F0000470F /* Tarot2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525E2DAAEC0F0000470F /* Tarot2.swift */; };
 		398852612DAB8FE50000470F /* ConversationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852602DAB8FE50000470F /* ConversationType.swift */; };
+		398852632DAC0DF80000470F /* MagicSevenSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */; };
+		398852652DAC10210000470F /* PyramidSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852642DAC10200000470F /* PyramidSpreadViewController.swift */; };
 		3994408B2D88BB4C00BB0429 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 3994408A2D88BB4C00BB0429 /* Base */; };
 		399440B02D88BCA800BB0429 /* SwiftEphemeris in Frameworks */ = {isa = PBXBuildFile; productRef = 399440AF2D88BCA800BB0429 /* SwiftEphemeris */; };
 		399440B32D88BD0400BB0429 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 399440B22D88BD0400BB0429 /* FirebaseAnalytics */; };
@@ -115,6 +117,8 @@
 		3988525C2DAAE92D0000470F /* Tarot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot.swift; sourceTree = "<group>"; };
 		3988525E2DAAEC0F0000470F /* Tarot2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot2.swift; sourceTree = "<group>"; };
 		398852602DAB8FE50000470F /* ConversationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationType.swift; sourceTree = "<group>"; };
+		398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicSevenSpreadViewController.swift; sourceTree = "<group>"; };
+		398852642DAC10200000470F /* PyramidSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PyramidSpreadViewController.swift; sourceTree = "<group>"; };
 		399440782D88BB4B00BB0429 /* Ask Lila.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Ask Lila.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3994408A2D88BB4C00BB0429 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		399440912D88BB4D00BB0429 /* Ask LilaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Ask LilaTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -208,6 +212,8 @@
 				396EEFEE2D98CE4D000AED12 /* manager.swift */,
 				3988525C2DAAE92D0000470F /* Tarot.swift */,
 				3988525E2DAAEC0F0000470F /* Tarot2.swift */,
+				398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */,
+				398852642DAC10200000470F /* PyramidSpreadViewController.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
@@ -410,6 +416,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				39CC1F922D9DD90400615B2E /* ViewController.swift in Sources */,
+				398852632DAC0DF80000470F /* MagicSevenSpreadViewController.swift in Sources */,
 				396256BE2D89F23300ECCF68 /* PartnerViewController.swift in Sources */,
 				39EED7892DA37588005E207D /* Config.swift in Sources */,
 				39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */,
@@ -424,6 +431,7 @@
 				391122872DA8E236005ED82C /* Splash.swift in Sources */,
 				390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */,
 				398852612DAB8FE50000470F /* ConversationType.swift in Sources */,
+				398852652DAC10210000470F /* PyramidSpreadViewController.swift in Sources */,
 				396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */,
 				39AF9E9D2D9C6C4400765A38 /* ConversationLogger.swift in Sources */,
 				39CC1F8E2D9DD08400615B2E /* AstrologServiceManager.swift in Sources */,
