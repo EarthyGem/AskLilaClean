@@ -31,6 +31,8 @@
 		396256D92D89F4E700ECCF68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 396256D82D89F4E700ECCF68 /* Main.storyboard */; };
 		396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EEFEE2D98CE4D000AED12 /* manager.swift */; };
 		396EEFF32D98FFA5000AED12 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 396EEFF22D98FFA5000AED12 /* FirebaseAuthCombine-Community */; };
+		3988525D2DAAE92D0000470F /* Tarot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525C2DAAE92D0000470F /* Tarot.swift */; };
+		3988525F2DAAEC0F0000470F /* Tarot2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525E2DAAEC0F0000470F /* Tarot2.swift */; };
 		3994408B2D88BB4C00BB0429 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 3994408A2D88BB4C00BB0429 /* Base */; };
 		399440B02D88BCA800BB0429 /* SwiftEphemeris in Frameworks */ = {isa = PBXBuildFile; productRef = 399440AF2D88BCA800BB0429 /* SwiftEphemeris */; };
 		399440B32D88BD0400BB0429 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 399440B22D88BD0400BB0429 /* FirebaseAnalytics */; };
@@ -109,6 +111,8 @@
 		396256CF2D89F23E00ECCF68 /* AIService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		396256D82D89F4E700ECCF68 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		396EEFEE2D98CE4D000AED12 /* manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = manager.swift; sourceTree = "<group>"; };
+		3988525C2DAAE92D0000470F /* Tarot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot.swift; sourceTree = "<group>"; };
+		3988525E2DAAEC0F0000470F /* Tarot2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot2.swift; sourceTree = "<group>"; };
 		399440782D88BB4B00BB0429 /* Ask Lila.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Ask Lila.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3994408A2D88BB4C00BB0429 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		399440912D88BB4D00BB0429 /* Ask LilaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Ask LilaTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -200,6 +204,8 @@
 				39CC1F8F2D9DD7EE00615B2E /* AskLilaView.swift */,
 				39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */,
 				396EEFEE2D98CE4D000AED12 /* manager.swift */,
+				3988525C2DAAE92D0000470F /* Tarot.swift */,
+				3988525E2DAAEC0F0000470F /* Tarot2.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
@@ -406,10 +412,12 @@
 				39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */,
 				391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */,
 				39AF9E972D9B6A3100765A38 /* Question Migration .swift in Sources */,
+				3988525D2DAAE92D0000470F /* Tarot.swift in Sources */,
 				396256D02D89F23E00ECCF68 /* AppDelegate.swift in Sources */,
 				396256C02D89F23300ECCF68 /* SubscriptionManager.swift in Sources */,
 				39CC1F902D9DD7EE00615B2E /* AskLilaView.swift in Sources */,
 				390A37852D96E8EF002404D9 /* CoT2.swift in Sources */,
+				3988525F2DAAEC0F0000470F /* Tarot2.swift in Sources */,
 				391122872DA8E236005ED82C /* Splash.swift in Sources */,
 				390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */,
 				396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */,

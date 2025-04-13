@@ -94,7 +94,10 @@ class MyAgentChatController: UIViewController {
         super.viewDidLoad()
         setupKeyboardNotifications()
         setupUI()
-        setupNavigationBar()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.setupNavigationBar()
+        }
+
         startNewConversation()
         print(chartCake.natal.asteroids.compactMap {$0.formatted})
         print("💬 AgentChat loaded with chartCake: \(chartCake?.name ?? "nil")")
@@ -164,36 +167,32 @@ class MyAgentChatController: UIViewController {
         print("💾 Started new conversation: \(conversationId)")
     }
     private func setupNavigationBar() {
-        // Existing code for your other buttons
         let calendarIcon = UIImage(systemName: "calendar")
         let personIcon = UIImage(systemName: "person.2")
-        let aiIcon = UIImage(systemName: "brain.head.profile") // AI service icon
-        let gearIcon = UIImage(systemName: "gearshape") // Settings/edit icon
-        let storyIcon = UIImage(systemName: "book.pages") // Story icon
-        let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal") // Astro-stats icon
-        
+        let aiIcon = UIImage(systemName: "brain.head.profile")
+        let gearIcon = UIImage(systemName: "gearshape")
+        let storyIcon = UIImage(systemName: "book.pages")
+        let statsIcon = UIImage(systemName: "chart.bar.doc.horizontal")
         let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
-        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
-        
-  
+
         let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
         let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
-        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
-        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
         let showStoryButton = UIBarButtonItem(image: storyIcon, style: .plain, target: self, action: #selector(showSouthNodeStoryTapped))
-       let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
 
-        // Add all buttons to the right side of the navigation bar
-        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton,  showStoryButton]
-        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton,showStatsButton]
-        // Add badge or indicator showing current AI service
-        updateAIServiceIndicator()
+        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
+        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
+        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
+        let showStatsButton = UIBarButtonItem(image: statsIcon, style: .plain, target: self, action: #selector(showStatsTapped))
+
+        // 👇 This is the key part: assign the array directly
+        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
+        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, showStatsButton]
     }
 
     
     @objc private func showConversationHistory() {
         // Present the AI service selector
-        let historyVC = ConversationHistoryViewController()
+        let historyVC = YesNoTarotViewController()
   
         let navController = UINavigationController(rootViewController: historyVC)
         present(navController, animated: true)
@@ -538,25 +537,17 @@ class MyAgentChatController: UIViewController {
 
     
     @objc private func editChartTapped() {
-        print("Edit button tapped") // For debugging
-        
-        // Method 1: Get the SceneDelegate via the UIWindowScene
+        print("🛠️ Edit tapped — attempting to call SceneDelegate...")
+
         if let windowScene = view.window?.windowScene,
            let sceneDelegate = windowScene.delegate as? SceneDelegate {
-            print("Found SceneDelegate via windowScene")
+            print("✅ Found SceneDelegate via windowScene")
             sceneDelegate.showEditChartScreen()
-            return
+        } else {
+            print("⚠️ SceneDelegate is nil or not ready")
         }
-        
-        // Method 2: Alternative approach if Method 1 fails
-        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-            print("Found SceneDelegate via UIApplication")
-            sceneDelegate.showEditChartScreen()
-            return
-        }
-        
-        print("Could not find SceneDelegate")
     }
+
     @objc func showSouthNodeStoryTapped() {
         // Create the South Node Story view controller
         let storyVC = SouthNodeStoryViewController()
