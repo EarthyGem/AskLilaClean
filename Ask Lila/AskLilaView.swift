@@ -119,8 +119,30 @@ class MyAgentChatController: UIViewController {
             self.isAdmin = isAdmin
             if isAdmin {
                 self.addMigrationButton()
+                
+                // Add Tarot button for admins only
+                if let storyButton = self.navigationItem.rightBarButtonItems?.first(where: {
+                    ($0.customView as? UILabel)?.text == "📖"
+                }) {
+                    let tarotLabel = UILabel()
+                    tarotLabel.text = "🎴"
+                    tarotLabel.font = UIFont.systemFont(ofSize: 28)
+                    tarotLabel.sizeToFit()
+                    tarotLabel.isUserInteractionEnabled = true
+                    let tarotTapGesture = UITapGestureRecognizer(target: self, action: #selector(self.showTarotYesNoTapped))
+                    tarotLabel.addGestureRecognizer(tarotTapGesture)
+                    let tarotButton = UIBarButtonItem(customView: tarotLabel)
+
+                    // Insert tarot button after 📖 story button
+                    if let index = self.navigationItem.rightBarButtonItems?.firstIndex(of: storyButton) {
+                        self.navigationItem.rightBarButtonItems?.insert(tarotButton, at: index + 1)
+                    } else {
+                        self.navigationItem.rightBarButtonItems?.append(tarotButton)
+                    }
+                }
             }
         }
+
 
         // Initial greeting message
         let greetingMessage = """
@@ -222,7 +244,7 @@ class MyAgentChatController: UIViewController {
 
     // Add this method to handle the tarot button tap
     @objc private func showTarotYesNoTapped() {
-        let tarotVC = MagicSevenSpreadViewController()
+        let tarotVC = PyramidSpreadViewController()
         let navController = UINavigationController(rootViewController: tarotVC)
         navController.modalPresentationStyle = .pageSheet
         present(navController, animated: true, completion: nil)
