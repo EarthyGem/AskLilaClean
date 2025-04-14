@@ -35,7 +35,8 @@ class PyramidSpreadViewController: UIViewController {
     ]
     
     // Identify which positions are keys (0-based indexing)
-    let keyPositions = [15, 19, 11, 5, 0] // Key I, II, III, IV, V in the pyramid
+    let keyPositions = [0, 4, 7, 12, 16] // Corrected indices
+ // Key I, II, III, IV, V in the pyramid
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -189,82 +190,59 @@ class PyramidSpreadViewController: UIViewController {
     
     // Layout the 21 cards in a pyramid pattern
     private func layoutPyramidCards() {
-        let cardWidth: CGFloat = 45
-        let cardHeight: CGFloat = 70
-        let horizontalSpacing: CGFloat = 2
-        let verticalSpacing: CGFloat = 5
-        
-        let pyramidTop = askButton.frame.maxY + 20
-        let centerX = view.center.x
-        
-        // Calculate positions for each row
-        // Row 1 (top) - 1 card
-        var rowStartIndex = 0
-        var cardsInRow = 1
-        var yPosition = pyramidTop
-        
-        // Position row 1 (top)
-        let row1X = centerX - (cardWidth / 2)
-        cardViews[rowStartIndex].frame = CGRect(x: row1X, y: yPosition, width: cardWidth, height: cardHeight)
-        
-        // Row 2 - 2 cards
-        rowStartIndex += cardsInRow
-        cardsInRow = 2
-        yPosition += cardHeight + verticalSpacing
-        
-        let row2Width = (cardWidth * CGFloat(cardsInRow)) + (horizontalSpacing * CGFloat(cardsInRow - 1))
-        var xPosition = centerX - (row2Width / 2)
-        
-        for i in rowStartIndex..<(rowStartIndex + cardsInRow) {
-            cardViews[i].frame = CGRect(x: xPosition, y: yPosition, width: cardWidth, height: cardHeight)
-            xPosition += cardWidth + horizontalSpacing
+        let cardWidth: CGFloat = 40
+        let cardHeight: CGFloat = 65
+        let spacingX: CGFloat = 6
+        let spacingY: CGFloat = 10
+
+        let rows = [1, 2, 4, 6, 8]
+        var cardIndex = 0
+
+        var previousRowBottom: NSLayoutYAxisAnchor = askButton.bottomAnchor
+
+        for cardsInRow in rows {
+            var rowCardViews: [UIImageView] = []
+
+            for _ in 0..<cardsInRow {
+                guard cardIndex < cardViews.count else { return }
+                let card = cardViews[cardIndex]
+                view.addSubview(card)
+
+                card.translatesAutoresizingMaskIntoConstraints = false
+                card.widthAnchor.constraint(equalToConstant: cardWidth).isActive = true
+                card.heightAnchor.constraint(equalToConstant: cardHeight).isActive = true
+                rowCardViews.append(card)
+
+                cardIndex += 1
+            }
+
+            // Stack this row horizontally
+            let stack = UIStackView(arrangedSubviews: rowCardViews)
+            stack.axis = .horizontal
+            stack.alignment = .center
+            stack.distribution = .equalSpacing
+            stack.spacing = spacingX
+            stack.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(stack)
+
+            NSLayoutConstraint.activate([
+                stack.topAnchor.constraint(equalTo: previousRowBottom, constant: spacingY),
+                stack.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            ])
+
+            // Update for next row
+            previousRowBottom = stack.bottomAnchor
         }
-        
-        // Row 3 - 3 cards
-        rowStartIndex += cardsInRow
-        cardsInRow = 3
-        yPosition += cardHeight + verticalSpacing
-        
-        let row3Width = (cardWidth * CGFloat(cardsInRow)) + (horizontalSpacing * CGFloat(cardsInRow - 1))
-        xPosition = centerX - (row3Width / 2)
-        
-        for i in rowStartIndex..<(rowStartIndex + cardsInRow) {
-            cardViews[i].frame = CGRect(x: xPosition, y: yPosition, width: cardWidth, height: cardHeight)
-            xPosition += cardWidth + horizontalSpacing
-        }
-        
-        // Row 4 - 6 cards
-        rowStartIndex += cardsInRow
-        cardsInRow = 6
-        yPosition += cardHeight + verticalSpacing
-        
-        let row4Width = (cardWidth * CGFloat(cardsInRow)) + (horizontalSpacing * CGFloat(cardsInRow - 1))
-        xPosition = centerX - (row4Width / 2)
-        
-        for i in rowStartIndex..<(rowStartIndex + cardsInRow) {
-            cardViews[i].frame = CGRect(x: xPosition, y: yPosition, width: cardWidth, height: cardHeight)
-            xPosition += cardWidth + horizontalSpacing
-        }
-        
-        // Row 5 (bottom) - 9 cards
-        rowStartIndex += cardsInRow
-        cardsInRow = 9
-        yPosition += cardHeight + verticalSpacing
-        
-        let row5Width = (cardWidth * CGFloat(cardsInRow)) + (horizontalSpacing * CGFloat(cardsInRow - 1))
-        xPosition = centerX - (row5Width / 2)
-        
-        for i in rowStartIndex..<(rowStartIndex + cardsInRow) {
-            cardViews[i].frame = CGRect(x: xPosition, y: yPosition, width: cardWidth, height: cardHeight)
-            xPosition += cardWidth + horizontalSpacing
-        }
-        
-        // Highlight key cards with a border
-        for keyPosition in keyPositions {
-            cardViews[keyPosition].layer.borderWidth = 2
-            cardViews[keyPosition].layer.borderColor = UIColor.systemRed.cgColor
+
+        // Highlight key cards
+        for keyIndex in keyPositions {
+            if keyIndex < cardViews.count {
+                cardViews[keyIndex].layer.borderWidth = 2
+                cardViews[keyIndex].layer.borderColor = UIColor.systemRed.cgColor
+            }
         }
     }
+
     
     @objc private func handleAsk() {
         view.endEditing(true)

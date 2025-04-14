@@ -244,7 +244,7 @@ class MyAgentChatController: UIViewController {
 
     // Add this method to handle the tarot button tap
     @objc private func showTarotYesNoTapped() {
-        let tarotVC = PyramidSpreadViewController()
+        let tarotVC = WishSpreadViewController()
         let navController = UINavigationController(rootViewController: tarotVC)
         navController.modalPresentationStyle = .pageSheet
         present(navController, animated: true, completion: nil)

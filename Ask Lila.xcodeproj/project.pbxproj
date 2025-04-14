@@ -13,6 +13,9 @@
 		3914D3252DA8DF1F00AAF32B /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3914D3242DA8DF1F00AAF32B /* Welcome.swift */; };
 		391DF0AC2D9E070A0082D515 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */; };
 		391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 391DF0AD2D9E07240082D515 /* Ask_Lila.xcdatamodeld */; };
+		391E96BA2DAC191000AAAC1D /* HoroscopeSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391E96B92DAC191000AAAC1D /* HoroscopeSpreadViewController.swift */; };
+		391E96BC2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */; };
+		391E96BE2DACBF0D00AAAC1D /* WishSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */; };
 		3962569C2D89365400ECCF68 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3962569B2D89365400ECCF68 /* GoogleSignInSwift */; };
 		396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256A92D89F23100ECCF68 /* LoginVC.swift */; };
 		396256B82D89F23300ECCF68 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AB2D89F23200ECCF68 /* Files.swift */; };
@@ -98,6 +101,9 @@
 		391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		391DF0AE2D9E07240082D515 /* Ask_Lila.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Ask_Lila.xcdatamodel; sourceTree = "<group>"; };
 		391DF0B02D9E072F0082D515 /* Ask Lila.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Ask Lila.entitlements"; sourceTree = "<group>"; };
+		391E96B92DAC191000AAAC1D /* HoroscopeSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoroscopeSpreadViewController.swift; sourceTree = "<group>"; };
+		391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicCrossSpreadViewController.swift; sourceTree = "<group>"; };
+		391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishSpreadViewController.swift; sourceTree = "<group>"; };
 		396256A92D89F23100ECCF68 /* LoginVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
 		396256AB2D89F23200ECCF68 /* Files.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		396256AC2D89F23200ECCF68 /* MyUserProfileData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyUserProfileData.swift; sourceTree = "<group>"; };
@@ -217,8 +223,11 @@
 				3988525E2DAAEC0F0000470F /* Tarot2.swift */,
 				398852642DAC10200000470F /* PyramidSpreadViewController.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
+				391E96B92DAC191000AAAC1D /* HoroscopeSpreadViewController.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
+				391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
+				391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */,
 				398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */,
 				391122862DA8E236005ED82C /* Splash.swift */,
 				396256C82D89F23E00ECCF68 /* AppCoordinator.swift */,
@@ -424,6 +433,7 @@
 				39EED7892DA37588005E207D /* Config.swift in Sources */,
 				39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */,
 				391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */,
+				391E96BA2DAC191000AAAC1D /* HoroscopeSpreadViewController.swift in Sources */,
 				39AF9E972D9B6A3100765A38 /* Question Migration .swift in Sources */,
 				3988525D2DAAE92D0000470F /* Tarot.swift in Sources */,
 				396256D02D89F23E00ECCF68 /* AppDelegate.swift in Sources */,
@@ -439,6 +449,7 @@
 				396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */,
 				39AF9E9D2D9C6C4400765A38 /* ConversationLogger.swift in Sources */,
 				39CC1F8E2D9DD08400615B2E /* AstrologServiceManager.swift in Sources */,
+				391E96BE2DACBF0D00AAAC1D /* WishSpreadViewController.swift in Sources */,
 				396256BD2D89F23300ECCF68 /* EditChart.swift in Sources */,
 				39DBF6872DA07E5A00AF97E4 /* SoulChat.swift in Sources */,
 				39AF9E9F2D9C6D0400765A38 /* ConversationHistoryVC.swift in Sources */,
@@ -453,6 +464,7 @@
 				396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */,
 				396256B82D89F23300ECCF68 /* Files.swift in Sources */,
 				39AF9E9B2D9BA7EA00765A38 /* GraphGraphs.swift in Sources */,
+				391E96BC2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
