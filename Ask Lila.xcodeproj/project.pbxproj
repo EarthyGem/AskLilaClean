@@ -74,6 +74,7 @@
 		39DBF6872DA07E5A00AF97E4 /* SoulChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */; };
 		39EED7892DA37588005E207D /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39EED7882DA37588005E207D /* Config.swift */; };
 		39FF45B62DACA5E000D1D91C /* DatePickerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */; };
+		39FF45BA2DAD647800D1D91C /* UserMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FF45B92DAD647800D1D91C /* UserMigration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -142,6 +143,7 @@
 		39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoulChat.swift; sourceTree = "<group>"; };
 		39EED7882DA37588005E207D /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerVC.swift; sourceTree = "<group>"; };
+		39FF45B92DAD647800D1D91C /* UserMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMigration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -241,6 +243,7 @@
 				39CC1F8D2D9DD08400615B2E /* AstrologServiceManager.swift */,
 				391DF0AD2D9E07240082D515 /* Ask_Lila.xcdatamodeld */,
 				39AF9E962D9B6A3100765A38 /* Question Migration .swift */,
+				39FF45B92DAD647800D1D91C /* UserMigration.swift */,
 				39AF9E9C2D9C6C4400765A38 /* ConversationLogger.swift */,
 				390A37842D96E8EF002404D9 /* CoT2.swift */,
 				390A37862D96EA7C002404D9 /* CoT2VC.swift */,
@@ -446,6 +449,7 @@
 				398852612DAB8FE50000470F /* ConversationType.swift in Sources */,
 				39FF45B62DACA5E000D1D91C /* DatePickerVC.swift in Sources */,
 				398852652DAC10210000470F /* PyramidSpreadViewController.swift in Sources */,
+				39FF45BA2DAD647800D1D91C /* UserMigration.swift in Sources */,
 				396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */,
 				39AF9E9D2D9C6C4400765A38 /* ConversationLogger.swift in Sources */,
 				39CC1F8E2D9DD08400615B2E /* AstrologServiceManager.swift in Sources */,

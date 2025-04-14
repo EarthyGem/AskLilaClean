@@ -119,7 +119,7 @@ class MyAgentChatController: UIViewController {
             self.isAdmin = isAdmin
             if isAdmin {
                 self.addMigrationButton()
-                
+                self.addTarotButton()
                 // Add Tarot button for admins only
                 if let storyButton = self.navigationItem.rightBarButtonItems?.first(where: {
                     ($0.customView as? UILabel)?.text == "📖"
@@ -158,16 +158,7 @@ class MyAgentChatController: UIViewController {
         messages.append((greetingMessage, false))
         chatTableView.reloadData()
     }
-    private func addMigrationButton() {
-        let migrateIcon = UIImage(systemName: "arrow.triangle.2.circlepath.doc.on.clipboard")
-        let migrateButton = UIBarButtonItem(image: migrateIcon, style: .plain, target: self, action: #selector(showMigrationVC))
-        navigationItem.rightBarButtonItems?.append(migrateButton)
-    }
 
-    @objc private func showMigrationVC() {
-        let migrationVC = DataMigrationViewController()
-        navigationController?.pushViewController(migrationVC, animated: true)
-    }
     private func startNewConversation() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
@@ -217,15 +208,7 @@ class MyAgentChatController: UIViewController {
         fairyLabel.addGestureRecognizer(statsTapGesture)
         let statsButton = UIBarButtonItem(customView: fairyLabel)
 
-        // 🎴 Tarot cards emoji for Yes/No Tarot Reading
-        let tarotLabel = UILabel()
-        tarotLabel.text = "🎴"  // Alternatively, could use "🔮" (crystal ball)
-        tarotLabel.font = UIFont.systemFont(ofSize: 28)
-        tarotLabel.sizeToFit()
-        tarotLabel.isUserInteractionEnabled = true
-        let tarotTapGesture = UITapGestureRecognizer(target: self, action: #selector(showTarotYesNoTapped))
-        tarotLabel.addGestureRecognizer(tarotTapGesture)
-        let tarotButton = UIBarButtonItem(customView: tarotLabel)
+     
 
         // Other buttons
         let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
@@ -235,12 +218,35 @@ class MyAgentChatController: UIViewController {
         let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
 
         // 🌼 Add buttons to navigation bar
-        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton, tarotButton]
+        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
         navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, statsButton]
 
         updateAIServiceIndicator()
     }
+    private func addTarotButton() {
+    
+                                  let tarotLabel = UILabel()
+                                  tarotLabel.text = "🎴"  // Alternatively, could use "🔮" (crystal ball)
+                                  tarotLabel.font = UIFont.systemFont(ofSize: 28)
+                                  tarotLabel.sizeToFit()
+                                  tarotLabel.isUserInteractionEnabled = true
+                                  let tarotTapGesture = UITapGestureRecognizer(target: self, action: #selector(showTarotYesNoTapped))
+                                  tarotLabel.addGestureRecognizer(tarotTapGesture)
+                              
+        let tarotButton = UIBarButtonItem(customView: tarotLabel)
+        navigationItem.rightBarButtonItems?.append(tarotButton)
+    }
+    
+    private func addMigrationButton() {
+        let migrateIcon = UIImage(systemName: "arrow.triangle.2.circlepath.doc.on.clipboard")
+        let migrateButton = UIBarButtonItem(image: migrateIcon, style: .plain, target: self, action: #selector(showMigrationVC))
+        navigationItem.rightBarButtonItems?.append(migrateButton)
+    }
 
+    @objc private func showMigrationVC() {
+        let migrationVC = DataMigrationViewController()
+        navigationController?.pushViewController(migrationVC, animated: true)
+    }
 
     // Add this method to handle the tarot button tap
     @objc private func showTarotYesNoTapped() {
