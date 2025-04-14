@@ -2,6 +2,20 @@ import Foundation
 import UIKit
 import SwiftEphemeris
 
+enum JargonLevel: Int {
+    case beginner = 0
+    case intermediate = 1
+    case advanced = 2
+
+    var label: String {
+        switch self {
+        case .beginner: return "Plain Language"
+        case .intermediate: return "Some Jargon"
+        case .advanced: return "Astro Speak"
+        }
+    }
+}
+
 class SoulChatViewController: UIViewController {
 
     // MARK: - Chart + Profile Data
@@ -9,12 +23,16 @@ class SoulChatViewController: UIViewController {
     var soulProfile: SoulValuesProfile!
     var toneProfile: AlchemicalToneProfile!
     var relationalSignature: RelationalSignature!
+    let jargonSlider = UISlider()
+    let jargonLabel = UILabel()
+    private var currentJargonLevel: JargonLevel = .intermediate
 
     // MARK: - UI Elements
     let tableView = UITableView()
     let inputTextView = UITextView()
     let sendButton = UIButton(type: .system)
-
+    // Add this property to store the bottom constraint
+    private var inputBottomConstraint: NSLayoutConstraint!
     // Add toolbar buttons
     let saveButton = UIButton(type: .system)
     let clearButton = UIButton(type: .system)
@@ -43,7 +61,7 @@ class SoulChatViewController: UIViewController {
 
         // Only add welcome message if there are no saved messages
         if messages.isEmpty {
-            addSystemMessage("✨ Hi, beautiful soul. I'm here to walk beside you. Ask me anything on your path.")
+            addSystemMessage("✨ Hi, beautiful soul. How may I be of assistance today?")
         }
     }
 
@@ -81,52 +99,119 @@ class SoulChatViewController: UIViewController {
         clearButton.translatesAutoresizingMaskIntoConstraints = false
         toolbarView.addSubview(clearButton)
 
+        // Configure jargon slider and label
+        jargonLabel.font = UIFont.systemFont(ofSize: 12)
+        jargonLabel.textAlignment = .center
+        jargonLabel.translatesAutoresizingMaskIntoConstraints = false
+        toolbarView.addSubview(jargonLabel)
+
+        jargonSlider.minimumValue = 0
+        jargonSlider.maximumValue = 2
+        let savedValue = UserDefaults.standard.integer(forKey: "user_jargon_level")
+        currentJargonLevel = JargonLevel(rawValue: savedValue) ?? .intermediate
+        jargonSlider.value = Float(currentJargonLevel.rawValue)
+        jargonLabel.text = "Language: \(currentJargonLevel.label)"
+        jargonSlider.addTarget(self, action: #selector(jargonSliderChanged(_:)), for: .valueChanged)
+        jargonSlider.translatesAutoresizingMaskIntoConstraints = false
+        toolbarView.addSubview(jargonSlider)
+
+        // Input container view
+        let inputContainerView = UIView()
+        inputContainerView.translatesAutoresizingMaskIntoConstraints = false
+        inputContainerView.backgroundColor = .systemBackground
+        inputContainerView.layer.borderColor = UIColor.lightGray.cgColor
+        inputContainerView.layer.borderWidth = 0.5
+        view.addSubview(inputContainerView)
+
+        // Add inputTextView and sendButton to input container
         inputTextView.font = UIFont.systemFont(ofSize: 16)
         inputTextView.layer.cornerRadius = 8
         inputTextView.layer.borderColor = UIColor.lightGray.cgColor
         inputTextView.layer.borderWidth = 1
         inputTextView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(inputTextView)
+        inputContainerView.addSubview(inputTextView)
 
         sendButton.setTitle("Send", for: .normal)
         sendButton.addTarget(self, action: #selector(sendTapped), for: .touchUpInside)
         sendButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(sendButton)
+        inputContainerView.addSubview(sendButton)
+
+        // Create and store the input container bottom constraint
+        inputBottomConstraint = inputContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
 
         NSLayoutConstraint.activate([
-            // Toolbar constraints
+            // Toolbar layout
             toolbarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             toolbarView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             toolbarView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            toolbarView.heightAnchor.constraint(equalToConstant: 44),
+            toolbarView.heightAnchor.constraint(equalToConstant: 60),
 
-            // Toolbar buttons
-            saveButton.leadingAnchor.constraint(equalTo: toolbarView.leadingAnchor, constant: 16),
+            // Save and Clear buttons
+            saveButton.leadingAnchor.constraint(equalTo: toolbarView.leadingAnchor, constant: 12),
             saveButton.centerYAnchor.constraint(equalTo: toolbarView.centerYAnchor),
 
-            clearButton.trailingAnchor.constraint(equalTo: toolbarView.trailingAnchor, constant: -16),
+            clearButton.trailingAnchor.constraint(equalTo: toolbarView.trailingAnchor, constant: -12),
             clearButton.centerYAnchor.constraint(equalTo: toolbarView.centerYAnchor),
 
-            // Adjust table view to start below toolbar
+            // Jargon label and slider
+            jargonSlider.centerXAnchor.constraint(equalTo: toolbarView.centerXAnchor),
+            jargonSlider.widthAnchor.constraint(equalToConstant: 120),
+            jargonSlider.bottomAnchor.constraint(equalTo: toolbarView.bottomAnchor, constant: -4),
+
+            jargonLabel.centerXAnchor.constraint(equalTo: jargonSlider.centerXAnchor),
+            jargonLabel.bottomAnchor.constraint(equalTo: jargonSlider.topAnchor, constant: -2),
+
+            // TableView
             tableView.topAnchor.constraint(equalTo: toolbarView.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: inputTextView.topAnchor, constant: -8),
+            tableView.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor),
 
-            inputTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 12),
-            inputTextView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
+            // Input container view
+            inputContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            inputContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            inputBottomConstraint,
+            inputContainerView.heightAnchor.constraint(equalToConstant: 52),
+
+            // Input text view
+            inputTextView.leadingAnchor.constraint(equalTo: inputContainerView.leadingAnchor, constant: 12),
+            inputTextView.topAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: 6),
+            inputTextView.bottomAnchor.constraint(equalTo: inputContainerView.bottomAnchor, constant: -6),
             inputTextView.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -8),
-            inputTextView.heightAnchor.constraint(equalToConstant: 40),
 
-            sendButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
+            // Send button
+            sendButton.trailingAnchor.constraint(equalTo: inputContainerView.trailingAnchor, constant: -12),
             sendButton.bottomAnchor.constraint(equalTo: inputTextView.bottomAnchor),
             sendButton.widthAnchor.constraint(equalToConstant: 60)
         ])
 
-        // Add tap gesture recognizer to dismiss keyboard when tapping outside the text field
+        // Tap to dismiss keyboard
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         tableView.addGestureRecognizer(tapGesture)
+    }
+
+
+
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
+              let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
+        else { return }
+
+        let keyboardHeight = keyboardFrame.height
+        let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+
+        UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
+            self.inputBottomConstraint.constant = -keyboardHeight + self.view.safeAreaInsets.bottom
+            self.view.layoutIfNeeded()
+            self.scrollToBottom()
+        }
+    }
+    @objc private func jargonSliderChanged(_ sender: UISlider) {
+        let roundedValue = Int(sender.value.rounded())
+        currentJargonLevel = JargonLevel(rawValue: roundedValue) ?? .intermediate
+        jargonLabel.text = "Language: \(currentJargonLevel.label)"
     }
 
     @objc private func keyboardWillHide(_ notification: Notification) {
@@ -137,14 +222,11 @@ class SoulChatViewController: UIViewController {
         let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
 
         UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
-            // Reset the constraint
-            self.view.constraints.first(where: { $0.firstAttribute == .bottom && $0.firstItem is UIView })?.constant = 0
-
+            self.inputBottomConstraint.constant = 0
             self.view.layoutIfNeeded()
-            self.tableView.contentInset.bottom = 0
-            self.tableView.scrollIndicatorInsets.bottom = 0
         }
     }
+
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
@@ -154,29 +236,7 @@ class SoulChatViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
-    @objc private func keyboardWillShow(_ notification: Notification) {
-        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
-              let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
-        else { return }
-
-        let keyboardHeight = keyboardFrame.height
-        let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
-
-        // Calculate the bottom constraint value
-        let bottomConstant = keyboardHeight - view.safeAreaInsets.bottom
-
-        UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
-            // Update the constraint to adjust for keyboard height
-            // Assuming you've stored this constraint as a property - you'll need to add this
-            self.view.constraints.first(where: { $0.firstAttribute == .bottom && $0.firstItem is UIView })?.constant = -bottomConstant
-
-            self.view.layoutIfNeeded()
-            self.tableView.contentInset.bottom = 0
-            self.tableView.scrollIndicatorInsets.bottom = 0
-            self.scrollToBottom()
-        }
-    }
+   
     @objc private func sendTapped() {
         guard let text = inputTextView.text, !text.isEmpty else { return }
         messages.append((text, true))
@@ -296,7 +356,7 @@ class SoulChatViewController: UIViewController {
             self.conversationID = UUID().uuidString
 
             // Add welcome message
-            self.addSystemMessage("✨ Hi, beautiful soul. I'm here to walk beside you. Ask me anything on your path.")
+            self.addSystemMessage("✨ Hi, beautiful soul. How may I be of assistance today?")
         })
 
         present(alert, animated: true)
@@ -324,7 +384,7 @@ class SoulChatViewController: UIViewController {
         )
 
         print("DEBUG: Generating prompt")
-        let fullPrompt = filter.createPrompt(with: userMessage, core: coreProfile)
+        let fullPrompt = filter.createPrompt(with: userMessage, core: coreProfile, jargon: currentJargonLevel)
         print("DEBUG: Prompt generated: \(fullPrompt.prefix(100))...")
 
         print("DEBUG: Checking if AI service exists")
@@ -346,8 +406,6 @@ class SoulChatViewController: UIViewController {
                     self.messages.append((reply, false))
                     self.tableView.reloadData()
                     self.scrollToBottom()
-
-                    // Save messages after receiving reply
                     self.saveMessages()
 
                 case .failure(let error):
@@ -355,13 +413,12 @@ class SoulChatViewController: UIViewController {
                     self.messages.append(("⚠️ There was an issue connecting with Lila's wisdom: \(error.localizedDescription)", false))
                     self.tableView.reloadData()
                     self.scrollToBottom()
-
-                    // Save messages even when there's an error
                     self.saveMessages()
                 }
             }
         }
     }
+
 }
 // MARK: - Table View
 extension SoulChatViewController: UITableViewDataSource {
@@ -384,19 +441,36 @@ struct ChartReflectionFilter {
     let soul: SoulValuesProfile
     let tone: AlchemicalToneProfile
     let relation: RelationalSignature
-
-    func createPrompt(with userMessage: String, core: UserCoreChartProfile) -> String {
+    
+    func createPrompt(with userMessage: String, core: UserCoreChartProfile, jargon: JargonLevel) -> String {
         return toneAdjustedResponse(
             userInput: userMessage,
             core: core,
             soul: soul,
-            tone: tone
+            tone: tone,
+            jargon: jargon
         )
     }
-}
-
-func toneAdjustedResponse(userInput: String, core: UserCoreChartProfile, soul: SoulValuesProfile, tone: AlchemicalToneProfile) -> String {
-    return """
+    
+    
+    func toneAdjustedResponse(
+        userInput: String,
+        core: UserCoreChartProfile,
+        soul: SoulValuesProfile,
+        tone: AlchemicalToneProfile,
+        jargon: JargonLevel
+    ) -> String {
+        let intro: String
+        switch jargon {
+        case .beginner:
+            intro = "Use natural, relatable language. Avoid astrology terms unless absolutely necessary."
+        case .intermediate:
+            intro = "Use some gentle astrology language but explain or soften technical terms."
+        case .advanced:
+            intro = "Feel free to use technical astrology terminology and rich symbolic language."
+        }
+        
+        return """
 🜁 You are a soul-reflective assistant aligned with the Personal Alchemy philosophy.
 
 Your reply should reflect the following chart truths:
@@ -417,6 +491,9 @@ Your reply should reflect the following chart truths:
 • Emotional tone: \(tone.preferredReception)
 • Learning style: \(tone.symbolicVoiceTone ?? "Natural language rooted in chart themes")
 
+LANGUAGE GUIDE:
+\(intro)
+
 PHILOSOPHY:
 This user is not broken—they are refining. 
 Speak through the lens of the 7-fold system. Honor effort over outcome. Reflect where growth is happening.
@@ -426,7 +503,9 @@ Speak through the lens of the 7-fold system. Honor effort over outcome. Reflect 
 
 --- YOUR SOUL-AWARE RESPONSE ---
 """
+    }
 }
+
 //struct ChartReflectionFilter {
 //    let soul: SoulValuesProfile
 //    let tone: AlchemicalToneProfile

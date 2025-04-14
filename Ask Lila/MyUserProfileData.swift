@@ -1449,10 +1449,14 @@ extension SuggestionsViewController: UITableViewDelegate, UITableViewDataSource 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         let suggestions = combineSuggestions()
+        
         cell.textLabel?.text = suggestions[indexPath.row]
+        cell.textLabel?.numberOfLines = 1  // Keep to one line
+        cell.textLabel?.adjustsFontSizeToFitWidth = true  // This enables auto-shrinking
+        cell.textLabel?.minimumScaleFactor = 0.75  // Don't shrink smaller than 75% of the original size
+        
         return cell
     }
-
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let suggestions = combineSuggestions()
         let selectedSuggestion = suggestions[indexPath.row]

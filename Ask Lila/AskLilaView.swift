@@ -124,7 +124,7 @@ class MyAgentChatController: UIViewController {
 
         // Initial greeting message
         let greetingMessage = """
-        🌟 Welcome to Ask Lila! I'm Lila, your AI astrology partner.
+        🌟 Welcome to Ask Lila!.
 
         ✨ How to Use Me:
         - You can ask me a question about your chart.
@@ -673,35 +673,25 @@ class MyAgentChatController: UIViewController {
     }
 
     @objc private func selectDateTapped() {
-        let datePicker = UIDatePicker()
-        datePicker.datePickerMode = .date
-        datePicker.preferredDatePickerStyle = .wheels
-        datePicker.maximumDate = Calendar.current.date(byAdding: .year, value: 50, to: Date()) // Future limit
-        datePicker.minimumDate = Calendar.current.date(byAdding: .year, value: -100, to: Date()) // Past limit
-        datePicker.minimumDate = Calendar.current.date(byAdding: .year, value: -100, to: Date()) // Past limit
+        let pickerVC = DatePickerSheetViewController()
+        pickerVC.modalPresentationStyle = .pageSheet
 
-        let alert = UIAlertController(title: "Select a Date", message: nil, preferredStyle: .actionSheet)
-
-        // Ensure proper popover presentation for iPad
-        if let popoverController = alert.popoverPresentationController {
-            popoverController.sourceView = self.view
-            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
-            popoverController.permittedArrowDirections = []
+        // Optional: make it scrollable if you plan to add more in future
+        if let sheet = pickerVC.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
         }
 
-        alert.view.addSubview(datePicker)
-
-        let heightConstraint = NSLayoutConstraint(item: alert.view!, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 300)
-        alert.view.addConstraint(heightConstraint)
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+        pickerVC.onDateSelected = { [weak self] date in
+            guard let self = self else { return }
             self.transitChartCake = nil
-            self.createTransitChart(for: datePicker.date)
-        }))
+            self.createTransitChart(for: date)
+        }
 
-        present(alert, animated: true)
+        present(pickerVC, animated: true)
     }
+
+
     @objc private func selectPartnerTapped() {
         let loadingAlert = UIAlertController(title: "Loading", message: "Fetching charts...", preferredStyle: .alert)
         present(loadingAlert, animated: true)

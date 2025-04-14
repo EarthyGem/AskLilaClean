@@ -70,6 +70,7 @@
 		39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6842DA0601A00AF97E4 /* Rasta.swift */; };
 		39DBF6872DA07E5A00AF97E4 /* SoulChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */; };
 		39EED7892DA37588005E207D /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39EED7882DA37588005E207D /* Config.swift */; };
+		39FF45B62DACA5E000D1D91C /* DatePickerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,6 +135,7 @@
 		39DBF6842DA0601A00AF97E4 /* Rasta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rasta.swift; sourceTree = "<group>"; };
 		39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoulChat.swift; sourceTree = "<group>"; };
 		39EED7882DA37588005E207D /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,13 +212,14 @@
 				39CC1F8F2D9DD7EE00615B2E /* AskLilaView.swift */,
 				39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */,
 				396EEFEE2D98CE4D000AED12 /* manager.swift */,
+				39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */,
 				3988525C2DAAE92D0000470F /* Tarot.swift */,
 				3988525E2DAAEC0F0000470F /* Tarot2.swift */,
-				398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */,
 				398852642DAC10200000470F /* PyramidSpreadViewController.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
+				398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */,
 				391122862DA8E236005ED82C /* Splash.swift */,
 				396256C82D89F23E00ECCF68 /* AppCoordinator.swift */,
 				396256B02D89F23200ECCF68 /* EditChart.swift */,
@@ -431,6 +434,7 @@
 				391122872DA8E236005ED82C /* Splash.swift in Sources */,
 				390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */,
 				398852612DAB8FE50000470F /* ConversationType.swift in Sources */,
+				39FF45B62DACA5E000D1D91C /* DatePickerVC.swift in Sources */,
 				398852652DAC10210000470F /* PyramidSpreadViewController.swift in Sources */,
 				396256D42D89F23E00ECCF68 /* AboutVC.swift in Sources */,
 				39AF9E9D2D9C6C4400765A38 /* ConversationLogger.swift in Sources */,
