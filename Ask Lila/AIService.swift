@@ -418,6 +418,31 @@ class OpenAIAstrologyService: BaseAstrologyService, AIService {
                 if let choices = json?["choices"] as? [[String: Any]],
                    let message = choices.first?["message"] as? [String: Any],
                    let content = message["content"] as? String {
+                    if let usage = json?["usage"] as? [String: Any],
+                       let promptTokens = usage["prompt_tokens"] as? Int,
+                       let completionTokens = usage["completion_tokens"] as? Int,
+                       let totalTokens = usage["total_tokens"] as? Int {
+
+                        let cost = AICostManager.estimateCost(
+                            model: self!.model,
+                            inputTokens: promptTokens,
+                            outputTokens: completionTokens
+                        )
+
+                        let entry = AICostEntry(
+                            model: self!.model,
+                            inputTokens: promptTokens,
+                            outputTokens: completionTokens,
+                            totalTokens: totalTokens,
+                            costUSD: cost,
+                            readingType: LilaMemoryManager.shared.determineReadingType(),
+                            chartName: chartCake?.natal.name ?? "Unknown",
+                            timestamp: Date()
+                        )
+
+                        AICostLogger.shared.log(entry)
+                    }
+
                     print("✅ OpenAI success — saving response")
                     LilaMemoryManager.shared.saveMessage(role: "assistant", content: content)
                     completion(.success(content))
@@ -471,13 +496,9 @@ class ClaudeAstrologyService: BaseAstrologyService, AIService {
 
         let enhancedSystemPrompt = "You are Lila, an advanced astrology assistant trained in evolutionary astrology. The full user prompt will contain all chart context and analysis instructions."
 
-        // Combine system instructions with context for more cohesive understanding
-        let userMessage = prompt
-
-
         messages.append([
             "role": "user",
-            "content": [[ "type": "text", "text": userMessage ]]
+            "content": [[ "type": "text", "text": prompt ]]
         ])
 
         let requestDict: [String: Any] = [
@@ -489,12 +510,10 @@ class ClaudeAstrologyService: BaseAstrologyService, AIService {
         ]
 
         guard let url = URL(string: baseURL) else {
-            print("❌ ERROR: Invalid API URL")
             completion(.failure(NSError(domain: "ClaudeAstrologyService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid API URL"])))
             return
         }
 
-        // ✅ Move try inside do-catch block for proper error handling
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: requestDict)
 
@@ -511,39 +530,13 @@ class ClaudeAstrologyService: BaseAstrologyService, AIService {
                 guard self != nil else { return }
 
                 if let error = error {
-                    print("❌ Claude API Request Failed - \(error.localizedDescription)")
-                    if let urlError = error as? URLError {
-                        print("🔍 URLError Code: \(urlError.code.rawValue) – \(urlError.code)")
-                    }
                     completion(.failure(error))
                     return
                 }
 
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("🌐 Claude HTTP Status Code: \(httpResponse.statusCode)")
-                    if !(200...299).contains(httpResponse.statusCode) {
-                        if let data = data,
-                           let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                           let errorInfo = errorJson["error"] as? [String: Any],
-                           let errorMessage = errorInfo["message"] as? String {
-                            print("📝 Claude Error Message: \(errorMessage)")
-                            completion(.failure(NSError(domain: "ClaudeAstrologyService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
-                        } else {
-                            print("❌ Claude returned non-200 with no error message")
-                            completion(.failure(NSError(domain: "ClaudeAstrologyService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP \(httpResponse.statusCode)"])))
-                        }
-                        return
-                    }
-                }
-
                 guard let data = data else {
-                    print("❌ No data received from Claude")
                     completion(.failure(NSError(domain: "ClaudeAstrologyService", code: 1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
                     return
-                }
-
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("📥 Claude Raw Response: \(responseString.prefix(300))...")
                 }
 
                 do {
@@ -554,191 +547,212 @@ class ClaudeAstrologyService: BaseAstrologyService, AIService {
 
                         if !reply.isEmpty {
                             LilaMemoryManager.shared.saveMessage(role: "assistant", content: reply)
-                            print("✅ Claude Response saved")
+
+                            // 🔢 Estimate token usage
+                            let inputTokens = prompt.split(separator: " ").count
+                            let outputTokens = reply.split(separator: " ").count
+                            let totalTokens = inputTokens + outputTokens
+
+                            // 💰 Estimate cost
+                            let cost = AICostManager.estimateCost(model: self?.model ?? "claude-3-sonnet", inputTokens: inputTokens, outputTokens: outputTokens)
+
+                            let entry = AICostEntry(
+                                model: self?.model ?? "claude-3-sonnet",
+                                inputTokens: inputTokens,
+                                outputTokens: outputTokens,
+                                totalTokens: totalTokens,
+                                costUSD: cost,
+                                readingType: LilaMemoryManager.shared.determineReadingType(),
+                                chartName: chartCake?.natal.name ?? "Unknown",
+                                timestamp: Date()
+                            )
+
+                            AICostLogger.shared.log(entry)
+
                             completion(.success(reply))
                         } else {
-                            print("❌ Claude content empty")
                             completion(.failure(NSError(domain: "ClaudeAstrologyService", code: 2, userInfo: [NSLocalizedDescriptionKey: "Empty Claude content"])))
                         }
                     } else {
-                        print("❌ Claude response missing 'content'")
-                        print("📄 Raw: \(String(data: data, encoding: .utf8) ?? "N/A")")
                         completion(.failure(NSError(domain: "ClaudeAstrologyService", code: 3, userInfo: [NSLocalizedDescriptionKey: "Missing content field"])))
                     }
                 } catch {
-                    print("❌ JSON Decoding Failed for Claude - \(error.localizedDescription)")
                     completion(.failure(error))
                 }
             }
 
             task.resume()
         } catch {
-            print("❌ ERROR: Failed to serialize requestDict - \(error.localizedDescription)")
             completion(.failure(error))
         }
     }
-
 }
 
-                            // MARK: - HuggingFace Astrology Service
-                            class HuggingFaceAstrologyService: BaseAstrologyService, AIService {
-                                private let apiKey: String
-                                private let baseURL = "https://api-inference.huggingface.co/models/"
-                                private let model: String
-                                
-                                init(apiKey: String = APIKeys.huggingFace, model: String = "mistralai/Mistral-7B-Instruct-v0.2") {
-                                    self.apiKey = apiKey
-                                    self.model = model
-                                    super.init()
-                                }
-                                
-                                func generateResponse(
-                                    prompt: String,
-                                    chartCake: ChartCake?,
-                                    otherChart: ChartCake?,
-                                    transitDate: Date?,
-                                    completion: @escaping (Result<String, Error>) -> Void
-                                ) {
-                                    
-                                    // Generate astrology context
-                                    let formattedPrompt = """
-                                    <s>[INST] <<SYS>>
-                                    You are Lila, an advanced astrology assistant trained in evolutionary astrology.
-                                    <</SYS>>
 
-                                    \(prompt)
-                                    [/INST]
-                                    """
+// MARK: - HuggingFace Astrology Service
+class HuggingFaceAstrologyService: BaseAstrologyService, AIService {
+    private let apiKey: String
+    private let baseURL = "https://api-inference.huggingface.co/models/"
+    private let model: String
 
-                                    // Define API endpoint
-                                    guard let url = URL(string: "\(baseURL)\(model)") else {
-                                        print("❌ ERROR: Invalid API URL")
-                                        completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-                                        return
-                                    }
-                                    
-                                    // Create request parameters
-                                    let parameters: [String: Any] = [
-                                        "inputs": formattedPrompt,
-                                        "parameters": [
-                                            "max_new_tokens": 2000,
-                                            "temperature": 0.7,
-                                            "top_p": 0.95,
-                                            "do_sample": true,
-                                            "return_full_text": false
-                                        ]
-                                    ]
-                                    
-                                    // Convert to JSON data
-                                    guard let jsonData = try? JSONSerialization.data(withJSONObject: parameters) else {
-                                        print("❌ ERROR: Failed to serialize request body")
-                                        completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create JSON data"])))
-                                        return
-                                    }
-                                    
-                                    // Create and configure request
-                                    var request = URLRequest(url: url)
-                                    request.httpMethod = "POST"
-                                    request.httpBody = jsonData
-                                    
-                                    // Set headers
-                                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                                    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-                                    
-                                    // Debug info
-                                    print("🔍 Making HuggingFace API request to model: \(model)")
-                                    
-                                    // Make request
-                                    let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                                        if let error = error {
-                                            print("❌ HuggingFace API Request Failed - \(error.localizedDescription)")
-                                            if let urlError = error as? URLError {
-                                                print("🔍 URLError Code: \(urlError.code.rawValue) – \(urlError.code)")
-                                            }
-                                            completion(.failure(error))
-                                            return
-                                        }
-                                        
-                                        if let httpResponse = response as? HTTPURLResponse {
-                                            print("🌐 HuggingFace HTTP Status Code: \(httpResponse.statusCode)")
-                                            if !(200...299).contains(httpResponse.statusCode) {
-                                                if let data = data,
-                                                   let responseText = String(data: data, encoding: .utf8) {
-                                                    print("❌ HuggingFace API Error Response: \(responseText.prefix(300))...")
-                                                }
-                                                completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP \(httpResponse.statusCode)"])))
-                                                return
-                                            }
-                                        }
-                                        
-                                        guard let data = data else {
-                                            print("❌ No data from HuggingFace")
-                                            completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                                            return
-                                        }
-                                        
-                                        if let responseString = String(data: data, encoding: .utf8) {
-                                            print("📥 HuggingFace Raw Response: \(responseString.prefix(300))...")
-                                        }
-                                        
-                                        do {
-                                            // Try array format first
-                                            if let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                                               let first = jsonArray.first,
-                                               let generated = first["generated_text"] as? String {
-                                                print("✅ HuggingFace Response (array format)")
-                                                LilaMemoryManager.shared.saveMessage(role: "assistant", content: generated)
-                                                completion(.success(generated))
-                                                return
-                                            }
-                                            
-                                            // Try object format fallback
-                                            if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                                                if let error = jsonObject["error"] as? String {
-                                                    print("❌ HuggingFace Model Error: \(error)")
-                                                    completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 2, userInfo: [NSLocalizedDescriptionKey: error])))
-                                                    return
-                                                }
-                                                
-                                                if let generatedText = jsonObject["generated_text"] as? String {
-                                                    print("✅ HuggingFace Response (object format)")
-                                                    LilaMemoryManager.shared.saveMessage(role: "assistant", content: generatedText)
-                                                    completion(.success(generatedText))
-                                                    return
-                                                }
-                                            }
-                                            
-                                            print("❌ HuggingFace response unrecognized")
-                                            completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 3, userInfo: [NSLocalizedDescriptionKey: "Unknown HuggingFace format"])))
-                                            
-                                        } catch {
-                                            print("❌ JSON Parsing Failed - HuggingFace - \(error.localizedDescription)")
-                                            completion(.failure(error))
-                                        }
-                                    }
-                                }
+    init(apiKey: String = APIKeys.huggingFace, model: String = "mistralai/Mistral-7B-Instruct-v0.2") {
+        self.apiKey = apiKey
+        self.model = model
+        super.init()
+    }
 
-                            }
+    func generateResponse(
+        prompt: String,
+        chartCake: ChartCake?,
+        otherChart: ChartCake?,
+        transitDate: Date?,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        let formattedPrompt = """
+        <s>[INST] <<SYS>>
+        You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+        <</SYS>>
 
-                            // MARK: - AI Service Factory
-                            class AstrologyAIServiceFactory {
-                                enum ServiceType {
-                                    case openAI
-                                    case claude
-                                    case huggingFace
-                                }
-                                
-                                static func createService(type: ServiceType) -> AIService {
-                                    switch type {
-                                    case .openAI:
-                                        return OpenAIAstrologyService(apiKey: APIKeys.openAI)
-                                    case .claude:
-                                        return ClaudeAstrologyService(apiKey: APIKeys.anthropic)
-                                    case .huggingFace:
-                                        return HuggingFaceAstrologyService(apiKey: APIKeys.huggingFace)
-                                    }
-                                }
-                            }
+        \(prompt)
+        [/INST]
+        """
+
+        guard let url = URL(string: "\(baseURL)\(model)") else {
+            completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+
+        let parameters: [String: Any] = [
+            "inputs": formattedPrompt,
+            "parameters": [
+                "max_new_tokens": 2000,
+                "temperature": 0.7,
+                "top_p": 0.95,
+                "do_sample": true,
+                "return_full_text": false
+            ]
+        ]
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: parameters) else {
+            completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to create JSON data"])))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = jsonData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data else {
+                completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+
+            do {
+                // Try array format
+                if let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+                   let first = jsonArray.first,
+                   let generated = first["generated_text"] as? String {
+                    
+                    // 🔢 Estimate token usage
+                    let inputTokens = formattedPrompt.split(separator: " ").count
+                    let outputTokens = generated.split(separator: " ").count
+                    let totalTokens = inputTokens + outputTokens
+
+                    // 💰 Estimate cost
+                    let cost = AICostManager.estimateCost(model: self.model, inputTokens: inputTokens, outputTokens: outputTokens)
+
+                    let entry = AICostEntry(
+                        model: self.model,
+                        inputTokens: inputTokens,
+                        outputTokens: outputTokens,
+                        totalTokens: totalTokens,
+                        costUSD: cost,
+                        readingType: LilaMemoryManager.shared.determineReadingType(),
+                        chartName: chartCake?.natal.name ?? "Unknown",
+                        timestamp: Date()
+                    )
+
+                    AICostLogger.shared.log(entry)
+
+                    LilaMemoryManager.shared.saveMessage(role: "assistant", content: generated)
+                    completion(.success(generated))
+                    return
+                }
+
+                // Try object format fallback
+                if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let generatedText = jsonObject["generated_text"] as? String {
+
+                    // 🔢 Estimate token usage
+                    let inputTokens = formattedPrompt.split(separator: " ").count
+                    let outputTokens = generatedText.split(separator: " ").count
+                    let totalTokens = inputTokens + outputTokens
+
+                    // 💰 Estimate cost
+                    let cost = AICostManager.estimateCost(model: self.model, inputTokens: inputTokens, outputTokens: outputTokens)
+
+                    let entry = AICostEntry(
+                        model: self.model,
+                        inputTokens: inputTokens,
+                        outputTokens: outputTokens,
+                        totalTokens: totalTokens,
+                        costUSD: cost,
+                        readingType: LilaMemoryManager.shared.determineReadingType(),
+                        chartName: chartCake?.natal.name ?? "Unknown",
+                        timestamp: Date()
+                    )
+
+                    AICostLogger.shared.log(entry)
+
+                    LilaMemoryManager.shared.saveMessage(role: "assistant", content: generatedText)
+                    completion(.success(generatedText))
+                    return
+                }
+
+                if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let error = jsonObject["error"] as? String {
+                    completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 2, userInfo: [NSLocalizedDescriptionKey: error])))
+                    return
+                }
+
+                completion(.failure(NSError(domain: "HuggingFaceAstrologyService", code: 3, userInfo: [NSLocalizedDescriptionKey: "Unknown HuggingFace format"])))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+
+        task.resume()
+    }
+}
+
+
+// MARK: - AI Service Factory
+class AstrologyAIServiceFactory {
+    enum ServiceType {
+        case openAI
+        case claude
+        case huggingFace
+    }
+    
+    static func createService(type: ServiceType) -> AIService {
+        switch type {
+        case .openAI:
+            return OpenAIAstrologyService(apiKey: APIKeys.openAI)
+        case .claude:
+            return ClaudeAstrologyService(apiKey: APIKeys.anthropic)
+        case .huggingFace:
+            return HuggingFaceAstrologyService(apiKey: APIKeys.huggingFace)
+        }
+    }
+}
 func calculateAgeString(from birthDate: Date, to selectedDate: Date) -> String {
     let calendar = Calendar.current
     

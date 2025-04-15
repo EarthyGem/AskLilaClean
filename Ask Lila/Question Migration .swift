@@ -25,7 +25,7 @@ class DataMigrationViewController: UIViewController {
     private var coreDataMessageCount = 0
     private var firestoreMessageCount = 0
     private var isExporting = false
-    private var isMigratingUsers: Bool = false
+    
     // UI Elements
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     private let loadingIndicator = UIActivityIndicatorView(style: .large)
@@ -38,10 +38,6 @@ class DataMigrationViewController: UIViewController {
         title = "Data Migration"
         view.backgroundColor = .systemBackground
         setupUI()
-        
-        // Register the cell for user migration
-        tableView.register(UserMigrationCell.self, forCellReuseIdentifier: "userMigrationCell")
-        
         fetchMessageCounts()
     }
     
@@ -375,27 +371,22 @@ class DataMigrationViewController: UIViewController {
 
 // MARK: - UITableViewDelegate & UITableViewDataSource
 extension DataMigrationViewController: UITableViewDelegate, UITableViewDataSource {
-    // Update to return 4 sections instead of 3
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 4 // Add one section for user profile migration
+        return 3
     }
-
-    // Update your numberOfRowsInSection method
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return 3 // Statistics
-        case 1: return 1 // Conversation Export
-        case 2: return 1 // User Profile Migration (NEW)
-        case 3: return 2 // Clear options (moved from section 2)
+        case 1: return 1 // Export
+        case 2: return 2 // Clear options
         default: return 0
         }
     }
-
-    // Update your tableView:cellForRowAt: method
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         switch indexPath.section {
         case 0:
-            // Statistics section (unchanged)
             if indexPath.row < 2 {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "statusCell", for: indexPath) as! DataStatusCell
                 
@@ -414,7 +405,6 @@ extension DataMigrationViewController: UITableViewDelegate, UITableViewDataSourc
             }
             
         case 1:
-            // Conversation export section (unchanged)
             let cell = tableView.dequeueReusableCell(withIdentifier: "exportCell", for: indexPath) as! ExportCell
             cell.configure(
                 isExporting: isExporting,
@@ -426,19 +416,6 @@ extension DataMigrationViewController: UITableViewDelegate, UITableViewDataSourc
             return cell
             
         case 2:
-            // User migration section (NEW)
-            let cell = tableView.dequeueReusableCell(withIdentifier: "userMigrationCell", for: indexPath) as! UserMigrationCell
-            cell.configure(
-                isMigrating: isMigratingUsers,
-                isEnabled: !isMigratingUsers,
-                onMigrate: { [weak self] in
-                    self?.migrateUserProfiles()
-                }
-            )
-            return cell
-            
-        case 3:
-            // Data management section (moved from section 2)
             let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
             
             if indexPath.row == 0 {
@@ -455,27 +432,23 @@ extension DataMigrationViewController: UITableViewDelegate, UITableViewDataSourc
             return UITableViewCell()
         }
     }
-
-    // Update section titles
+    
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0: return "Data Statistics"
-        case 1: return "Conversation Migration"
-        case 2: return "Profile Migration"
-        case 3: return "Data Management"
+        case 1: return "Data Migration"
+        case 2: return "Data Management"
         default: return nil
         }
     }
-
-    // Update cell height method
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if indexPath.section == 1 || indexPath.section == 2 {
-            return 120 // Both export cells are taller
+    
+    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 2 {
+            return "These actions cannot be undone. Use with caution."
         }
-        return UITableView.automaticDimension
+        return nil
     }
-
-    // Update didSelectRowAt
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
@@ -485,7 +458,7 @@ extension DataMigrationViewController: UITableViewDelegate, UITableViewDataSourc
                 fetchMessageCounts()
             }
             
-        case 3: // Updated from case 2
+        case 2:
             if indexPath.row == 0 {
                 clearCoreData()
             } else {
@@ -496,71 +469,13 @@ extension DataMigrationViewController: UITableViewDelegate, UITableViewDataSourc
             break
         }
     }
-
-    // Add this method to implement user profile migration
-    func migrateUserProfiles() {
-        guard !isMigratingUsers else { return }
-        isMigratingUsers = true
-        tableView.reloadData()
-        
-        // Show loading
-        loadingIndicator.startAnimating()
-        statusLabel.text = "Starting user profile migration..."
-        progressView.isHidden = false
-        progressView.progress = 0
-        // In migrateUserProfiles before starting migration
-        print("Starting user profile migration")
-        // Configure progress updates
-        let migrationManager = UserDataMigrationManager.shared
-        migrationManager.onProgressUpdate = { [weak self] (progress, message) in
-            DispatchQueue.main.async {
-                self?.progressView.progress = Float(progress)
-                self?.statusLabel.text = message
-            }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if indexPath.section == 1 {
+            return 120 // Export cell is taller
         }
-        
-        // Start migration
-        migrationManager.migrateUserProfilesToFirestore { [weak self] status in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                self.isMigratingUsers = false
-                self.loadingIndicator.stopAnimating()
-                self.progressView.isHidden = true
-                
-                switch status {
-                case .completed:
-                    let alert = UIAlertController(
-                        title: "Migration Complete",
-                        message: "All user profiles have been successfully migrated to Firestore.",
-                        preferredStyle: .alert
-                    )
-                    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                        self.fetchMessageCounts()
-                    })
-                    self.present(alert, animated: true)
-                    // In the completion handler
-                    print("Migration completed with status: \(status)")
-                case .failed(let error):
-                    let alert = UIAlertController(
-                        title: "Migration Failed",
-                        message: "There was an error migrating user profiles: \(error.localizedDescription)",
-                        preferredStyle: .alert
-                    )
-                    alert.addAction(UIAlertAction(title: "OK", style: .default))
-                    self.present(alert, animated: true)
-                    
-                case .inProgress:
-                    // This shouldn't happen
-                    break
-                }
-                
-                self.tableView.reloadData()
-            }
-        }
+        return UITableView.automaticDimension
     }
-    
-    
 }
 
 // MARK: - Custom Cells

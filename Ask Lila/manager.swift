@@ -79,7 +79,7 @@ class LilaMemoryManager {
     }
 
     // Helper methods to get context for FireStore
-    private func determineReadingType() -> String {
+    func determineReadingType() -> String {
         if let selectedDate = UserDefaults.standard.object(forKey: "selectedTransitDate") as? Date {
             // If user has selected a transit date, force the reading type
             return "TRANSIT & PROGRESSION"

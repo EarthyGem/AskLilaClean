@@ -1155,18 +1155,7 @@ extension MyUserProfileViewController {
                 UserDefaultsManager.shared.saveChart(chartCake)
                 print("💾 ChartCake saved to UserDefaults")
                 let profile = UserProfileEntity()
-                profile.displayName = self.nameTextField.text ?? "Unnamed"
-                profile.email = UserDefaults.standard.string(forKey: "userEmail")
-                profile.uid = UserDefaults.standard.string(forKey: "currentUserId") ?? UUID().uuidString
-                profile.sun = chartCake.natal.sun.body.keyName ?? ""
-                profile.moon = chartCake.natal.moon.body.keyName ?? ""
-                profile.ascendant = chartCake.natal.ascendantCoordinate.body.keyName ?? ""
-                profile.strongestPlanet = chartCake.strongestPlanetSN.keyName
-                profile.strongestAspects = "" // You can populate if available
-                profile.bio = "" // Optionally set
-                profile.birthDate = chartCake.natal.birthDate
-                profile.latitude = chartCake.natal.latitude
-                profile.longitude = chartCake.natal.longitude
+        
 
                 // Save to CoreData
                 self.saveChart(

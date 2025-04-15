@@ -16,6 +16,11 @@
 		391E96BA2DAC191000AAAC1D /* HoroscopeSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391E96B92DAC191000AAAC1D /* HoroscopeSpreadViewController.swift */; };
 		391E96BC2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */; };
 		391E96BE2DACBF0D00AAAC1D /* WishSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */; };
+		3928F0172DAD992C0023BBD3 /* CostSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F0162DAD992C0023BBD3 /* CostSummary.swift */; };
+		3928F0192DAD9C230023BBD3 /* AICostDashboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F0182DAD9C230023BBD3 /* AICostDashboardViewController.swift */; };
+		3928F01B2DAD9D480023BBD3 /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F01A2DAD9D480023BBD3 /* SettingsVC.swift */; };
+		3928F01D2DADC8C90023BBD3 /* AccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F01C2DADC8C90023BBD3 /* AccessManager.swift */; };
+		3928F01F2DADD7450023BBD3 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F01E2DADD7450023BBD3 /* PaywallViewController.swift */; };
 		3962569C2D89365400ECCF68 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3962569B2D89365400ECCF68 /* GoogleSignInSwift */; };
 		396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256A92D89F23100ECCF68 /* LoginVC.swift */; };
 		396256B82D89F23300ECCF68 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AB2D89F23200ECCF68 /* Files.swift */; };
@@ -35,7 +40,6 @@
 		396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EEFEE2D98CE4D000AED12 /* manager.swift */; };
 		396EEFF32D98FFA5000AED12 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 396EEFF22D98FFA5000AED12 /* FirebaseAuthCombine-Community */; };
 		3988525D2DAAE92D0000470F /* Tarot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525C2DAAE92D0000470F /* Tarot.swift */; };
-		3988525F2DAAEC0F0000470F /* Tarot2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525E2DAAEC0F0000470F /* Tarot2.swift */; };
 		398852612DAB8FE50000470F /* ConversationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852602DAB8FE50000470F /* ConversationType.swift */; };
 		398852632DAC0DF80000470F /* MagicSevenSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */; };
 		398852652DAC10210000470F /* PyramidSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852642DAC10200000470F /* PyramidSpreadViewController.swift */; };
@@ -105,6 +109,11 @@
 		391E96B92DAC191000AAAC1D /* HoroscopeSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoroscopeSpreadViewController.swift; sourceTree = "<group>"; };
 		391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicCrossSpreadViewController.swift; sourceTree = "<group>"; };
 		391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishSpreadViewController.swift; sourceTree = "<group>"; };
+		3928F0162DAD992C0023BBD3 /* CostSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostSummary.swift; sourceTree = "<group>"; };
+		3928F0182DAD9C230023BBD3 /* AICostDashboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICostDashboardViewController.swift; sourceTree = "<group>"; };
+		3928F01A2DAD9D480023BBD3 /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
+		3928F01C2DADC8C90023BBD3 /* AccessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessManager.swift; sourceTree = "<group>"; };
+		3928F01E2DADD7450023BBD3 /* PaywallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewController.swift; sourceTree = "<group>"; };
 		396256A92D89F23100ECCF68 /* LoginVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
 		396256AB2D89F23200ECCF68 /* Files.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		396256AC2D89F23200ECCF68 /* MyUserProfileData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyUserProfileData.swift; sourceTree = "<group>"; };
@@ -123,7 +132,6 @@
 		396256D82D89F4E700ECCF68 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		396EEFEE2D98CE4D000AED12 /* manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = manager.swift; sourceTree = "<group>"; };
 		3988525C2DAAE92D0000470F /* Tarot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot.swift; sourceTree = "<group>"; };
-		3988525E2DAAEC0F0000470F /* Tarot2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot2.swift; sourceTree = "<group>"; };
 		398852602DAB8FE50000470F /* ConversationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationType.swift; sourceTree = "<group>"; };
 		398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicSevenSpreadViewController.swift; sourceTree = "<group>"; };
 		398852642DAC10200000470F /* PyramidSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PyramidSpreadViewController.swift; sourceTree = "<group>"; };
@@ -222,18 +230,22 @@
 				396EEFEE2D98CE4D000AED12 /* manager.swift */,
 				39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */,
 				3988525C2DAAE92D0000470F /* Tarot.swift */,
-				3988525E2DAAEC0F0000470F /* Tarot2.swift */,
+				3928F01A2DAD9D480023BBD3 /* SettingsVC.swift */,
+				3928F01C2DADC8C90023BBD3 /* AccessManager.swift */,
 				398852642DAC10200000470F /* PyramidSpreadViewController.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
 				391E96B92DAC191000AAAC1D /* HoroscopeSpreadViewController.swift */,
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
+				3928F01E2DADD7450023BBD3 /* PaywallViewController.swift */,
+				3928F0162DAD992C0023BBD3 /* CostSummary.swift */,
 				391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */,
 				398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */,
 				391122862DA8E236005ED82C /* Splash.swift */,
 				396256C82D89F23E00ECCF68 /* AppCoordinator.swift */,
 				396256B02D89F23200ECCF68 /* EditChart.swift */,
+				3928F0182DAD9C230023BBD3 /* AICostDashboardViewController.swift */,
 				39EED7882DA37588005E207D /* Config.swift */,
 				396256AB2D89F23200ECCF68 /* Files.swift */,
 				391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */,
@@ -433,6 +445,7 @@
 				39CC1F922D9DD90400615B2E /* ViewController.swift in Sources */,
 				398852632DAC0DF80000470F /* MagicSevenSpreadViewController.swift in Sources */,
 				396256BE2D89F23300ECCF68 /* PartnerViewController.swift in Sources */,
+				3928F0172DAD992C0023BBD3 /* CostSummary.swift in Sources */,
 				39EED7892DA37588005E207D /* Config.swift in Sources */,
 				39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */,
 				391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */,
@@ -443,10 +456,11 @@
 				396256C02D89F23300ECCF68 /* SubscriptionManager.swift in Sources */,
 				39CC1F902D9DD7EE00615B2E /* AskLilaView.swift in Sources */,
 				390A37852D96E8EF002404D9 /* CoT2.swift in Sources */,
-				3988525F2DAAEC0F0000470F /* Tarot2.swift in Sources */,
 				391122872DA8E236005ED82C /* Splash.swift in Sources */,
+				3928F0192DAD9C230023BBD3 /* AICostDashboardViewController.swift in Sources */,
 				390A37872D96EA7C002404D9 /* CoT2VC.swift in Sources */,
 				398852612DAB8FE50000470F /* ConversationType.swift in Sources */,
+				3928F01F2DADD7450023BBD3 /* PaywallViewController.swift in Sources */,
 				39FF45B62DACA5E000D1D91C /* DatePickerVC.swift in Sources */,
 				398852652DAC10210000470F /* PyramidSpreadViewController.swift in Sources */,
 				39FF45BA2DAD647800D1D91C /* UserMigration.swift in Sources */,
@@ -462,6 +476,7 @@
 				396256BF2D89F23300ECCF68 /* NodalStory.swift in Sources */,
 				3914D3252DA8DF1F00AAF32B /* Welcome.swift in Sources */,
 				396256D72D89F23E00ECCF68 /* AIService.swift in Sources */,
+				3928F01D2DADC8C90023BBD3 /* AccessManager.swift in Sources */,
 				396256C22D89F23300ECCF68 /* SceneDelegate.swift in Sources */,
 				396256D52D89F23E00ECCF68 /* AppCoordinator.swift in Sources */,
 				39AF9E992D9BA77000765A38 /* LilaIntel.swift in Sources */,
@@ -469,6 +484,7 @@
 				396256B82D89F23300ECCF68 /* Files.swift in Sources */,
 				39AF9E9B2D9BA7EA00765A38 /* GraphGraphs.swift in Sources */,
 				391E96BC2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift in Sources */,
+				3928F01B2DAD9D480023BBD3 /* SettingsVC.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -653,7 +669,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lilaverse.AskLila;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -683,7 +699,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lilaverse.AskLila;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

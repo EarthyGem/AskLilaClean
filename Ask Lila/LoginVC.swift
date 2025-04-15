@@ -10,6 +10,8 @@ import UIKit
 import AuthenticationServices
 import CryptoKit
 import CoreData
+import FirebaseAuth
+import FirebaseFirestore
 
 protocol LoginDelegate: AnyObject {
     func didLoginSuccessfully()
@@ -460,47 +462,8 @@ class LoginViewController: UIViewController, ASAuthorizationControllerDelegate, 
         present(navController, animated: true, completion: nil)
     }
 
-    private func saveUserInfoToCoreData(userId: String, displayName: String?, email: String?) {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            print("⚠️ Could not access AppDelegate")
-            return
-        }
-        
-        let context = appDelegate.persistentContainer.viewContext
-        
-        // Check if user already exists
-        let fetchRequest: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
-        
-        do {
-            let existingUsers = try context.fetch(fetchRequest)
-            
-            if let existingUser = existingUsers.first {
-                // Update existing user
-                existingUser.displayName = displayName
-                existingUser.email = email
-                existingUser.lastLoginDate = Date()
-            } else {
-                // Create a new user
-                let user = UserEntity(context: context)
-                user.userId = userId
-                user.displayName = displayName
-                user.email = email
-                user.lastLoginDate = Date()
-            }
-            
-            // Save to Core Data
-            try context.save()
-            print("✅ User data saved successfully to CoreData")
-            
-            // Save userId to UserDefaults for login state
-            UserDefaults.standard.set(userId, forKey: "currentUserId")
-        } catch {
-            print("❌ Error saving user data to CoreData: \(error.localizedDescription)")
-        }
-    }
-
-    // MARK: - Apple Sign-In
+  
+    // Update the authorizationController didCompleteWithAuthorization method in your LoginViewController
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             guard let identityToken = appleIDCredential.identityToken,
@@ -539,14 +502,117 @@ class LoginViewController: UIViewController, ASAuthorizationControllerDelegate, 
                 print("Keychain save status: \(status)")
             }
             
-            // Navigate to main app screen
-            DispatchQueue.main.async {
-                self.navigateToHome()
+            // Create Firebase credential from the Apple ID token and raw nonce
+            guard let nonce = currentNonce else {
+                print("Invalid state: A login callback was received, but no login request was sent.")
+                return
+            }
+            
+            // Sign in with Firebase
+            let credential = OAuthProvider.credential(withProviderID: "apple.com",
+                                                     idToken: tokenString,
+                                                     rawNonce: nonce)
+            
+            Auth.auth().signIn(with: credential) { [weak self] (authResult, error) in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("Firebase sign-in error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let firebaseUser = authResult?.user else {
+                    print("Firebase sign-in failed with no error")
+                    return
+                }
+                
+                print("Firebase sign-in successful: \(firebaseUser.uid)")
+                
+                // Save Firebase UID to UserDefaults
+                UserDefaults.standard.set(firebaseUser.uid, forKey: "firebaseUserId")
+                
+                // Check if migration is needed and perform it
+                MigrationManager.shared.checkAndMigrateCurrentUserIfNeeded { success in
+                    if success {
+                        print("User data migration successful or already completed")
+                    } else {
+                        print("No migration performed or migration failed")
+                    }
+                    
+                    // Navigate to main app screen
+                    DispatchQueue.main.async {
+                        self.navigateToHome()
+                    }
+                }
             }
         }
     }
 
+    // Update your saveUserInfoToCoreData method to also create a UserProfileEntity if it doesn't exist
+    private func saveUserInfoToCoreData(userId: String, displayName: String?, email: String?) {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            print("⚠️ Could not access AppDelegate")
+            return
+        }
+        
+        let context = appDelegate.persistentContainer.viewContext
+        
+        // Check if user already exists
+        let fetchRequest: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "userId == %@", userId)
+        
+        do {
+            let existingUsers = try context.fetch(fetchRequest)
+            
+            if let existingUser = existingUsers.first {
+                // Update existing user
+                existingUser.displayName = displayName
+                existingUser.email = email
+                existingUser.lastLoginDate = Date()
+            } else {
+                // Create a new user
+                let user = UserEntity(context: context)
+                user.userId = userId
+                user.displayName = displayName
+                user.email = email
+                user.lastLoginDate = Date()
+            }
+            
+            // Save to Core Data
+            try context.save()
+            print("✅ User data saved successfully to CoreData")
+            
+            // Save userId to UserDefaults for login state
+            UserDefaults.standard.set(userId, forKey: "currentUserId")
+            
+            // Now check if there's a UserProfileEntity for this user
+            let profileFetchRequest: NSFetchRequest<UserProfileEntity> = UserProfileEntity.fetchRequest()
+            profileFetchRequest.predicate = NSPredicate(format: "uid == %@", userId)
+            
+            let existingProfiles = try context.fetch(profileFetchRequest)
+            
+            if existingProfiles.isEmpty {
+                // Create a basic profile entity to ensure migration has something to work with
+                let profile = UserProfileEntity(context: context)
+                profile.uid = userId
+                profile.displayName = displayName
+                profile.email = email
+                
+                // You might want to initialize other fields with default values
+                profile.role = "user"
+                
+                // Save to Core Data
+                try context.save()
+                print("✅ Created new user profile entity for migration")
+            }
+            
+        } catch {
+            print("❌ Error saving user data to CoreData: \(error.localizedDescription)")
+        }
+    }
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         print("Authorization failed with error: \(error.localizedDescription)")
     }
+    
+
 }

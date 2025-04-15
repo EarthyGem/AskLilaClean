@@ -1339,17 +1339,53 @@ class SouthNodeStoryViewController: UIViewController {
             return
         }
 
-        // ✅ Check if the user has already generated a story today
-        if !canGenerateNewStory() {
-            if isUserPremium() {
-                print("[DEBUG] Premium user - bypassing daily limit")
-            } else {
-                showPaywall() // ✅ Show YOUR paywall instead of an alert
-                return
-            }
+        let category: AskLilaCategory = .southNode
+
+        // ✅ Check if user is allowed to generate a South Node story
+        guard AccessManager.shared.canUse(category) else {
+            print("[DEBUG] User has hit their quota for South Node stories")
+            showPaywall()
+            return
         }
 
-        // Check if custom time period is selected but not filled
+        // ✅ Count this as a usage
+        AccessManager.shared.increment(category)
+
+        // Optional: Show remaining uses
+        if let remaining = AccessManager.shared.remainingUses(for: category),
+           AccessManager.shared.currentLevel != .premium {
+            let message = "🌿 You have \(remaining) South Node stor\(remaining == 1 ? "y" : "ies") left this week."
+            let toast = UILabel()
+            toast.text = message
+            toast.textAlignment = .center
+            toast.backgroundColor = .secondarySystemBackground
+            toast.textColor = .label
+            toast.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+            toast.layer.cornerRadius = 12
+            toast.clipsToBounds = true
+            toast.alpha = 0
+            toast.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(toast)
+
+            NSLayoutConstraint.activate([
+                toast.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                toast.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90),
+                toast.heightAnchor.constraint(equalToConstant: 40),
+                toast.widthAnchor.constraint(greaterThanOrEqualToConstant: 250)
+            ])
+
+            UIView.animate(withDuration: 0.3, animations: {
+                toast.alpha = 1
+            }, completion: { _ in
+                UIView.animate(withDuration: 0.3, delay: 3.0, options: [], animations: {
+                    toast.alpha = 0
+                }) { _ in
+                    toast.removeFromSuperview()
+                }
+            })
+        }
+
+        // ✅ Validate custom time period field
         if selectedTimePeriod == "Custom Time Period..." && (customTimePeriod?.isEmpty ?? true) {
             let alert = UIAlertController(
                 title: "Missing Time Period",
@@ -1361,19 +1397,11 @@ class SouthNodeStoryViewController: UIViewController {
             return
         }
 
-        // Start loading
         activityIndicator.startAnimating()
         generateButton.isEnabled = false
 
-        // ✅ Store the latest query timestamp in UserDefaults (Only for non-premium users)
-        if !isUserPremium() {
-            UserDefaults.standard.set(Date(), forKey: "lastSouthNodeStoryDate")
-        }
-
-        // The actual time period to use
         let timePeriodToUse = selectedTimePeriod == "Custom Time Period..." ? customTimePeriod! : selectedTimePeriod
 
-        // Log parameters for debugging
         print("[DEBUG] Generating story with parameters:")
         print("[DEBUG] Gender: \(selectedGender)")
         print("[DEBUG] Time Period: \(timePeriodToUse)")
@@ -1381,7 +1409,6 @@ class SouthNodeStoryViewController: UIViewController {
         print("[DEBUG] Length: \(selectedLength)")
         print("[DEBUG] Provider: \(providerInfoLabel.text ?? "Unknown")")
 
-        // Log analytics event
         Analytics.logEvent("south_node_story_generated", parameters: [
             "provider": providerInfoLabel.text ?? "Unknown",
             "gender": selectedGender,
@@ -1390,12 +1417,10 @@ class SouthNodeStoryViewController: UIViewController {
             "length": selectedLength
         ])
 
-        // Prepare storybook view
         storyTitleLabel.text = selectedStyle == "Children's Story" ? "A South Node Tale" : "A Past Life Journey"
         storyInfoLabel.text = "\(timePeriodToUse) • \(selectedStyle)"
         storyTextView.text = "Generating your story..."
 
-        // Make the request with the proper parameters to match the service
         storyService.generateSouthNodeStory(
             gender: selectedGender,
             timePeriod: timePeriodToUse,
@@ -1412,35 +1437,22 @@ class SouthNodeStoryViewController: UIViewController {
                     print("[DEBUG] Story length: \(story.count) characters")
                     print("[DEBUG] First 100 characters: \(story.prefix(100))")
 
-                    // Store the generated story
                     self?.generatedStory = story
-
-                    // Format the story with a nice first letter
                     let formattedStory = self?.formatStoryText(story) ?? story
-
-                    // Update UI
                     self?.storyTextView.text = formattedStory
                     self?.shareButton.isHidden = false
                     self?.askLilaButton.isHidden = false
                     self?.backToSettingsButton.isHidden = false
-
-                    // Adjust content size based on actual text content
                     self?.adjustScrollViewContentSize()
-
-                    // Switch to storybook view
                     self?.switchToStoryView()
-                    print("[DEBUG] Is storyView hidden after switch: \(self?.storyView.isHidden ?? true)")
 
                 case .failure(let error):
-                    print("[DEBUG] Error generating story: \(error)")
-                    print("[DEBUG] Error description: \(error.localizedDescription)")
-
+                    print("[DEBUG] Error generating story: \(error.localizedDescription)")
                     let alertController = UIAlertController(
                         title: "Story Generation Failed",
                         message: "We couldn't generate your story: \(error.localizedDescription)",
                         preferredStyle: .alert
                     )
-
                     alertController.addAction(UIAlertAction(title: "OK", style: .default))
                     self?.present(alertController, animated: true)
                 }
@@ -1461,19 +1473,12 @@ class SouthNodeStoryViewController: UIViewController {
 
     // ✅ Use your existing paywall logic
     private func showPaywall() {
-        let alert = UIAlertController(
-            title: "Upgrade to Unlimited Access",
-            message: "You’ve reached your daily limit of free queries. Upgrade to Lila Premium for unlimited insights.",
-            preferredStyle: .alert
-        )
-
-        alert.addAction(UIAlertAction(title: "Subscribe", style: .default) { _ in
-            SubscriptionManager.shared.purchaseSubscription() // ✅ Calls your existing subscription logic
-        })
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+        let paywallVC = PaywallViewController()
+        let nav = UINavigationController(rootViewController: paywallVC)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true)
     }
+
 
     private func formatStoryText(_ text: String) -> String {
         // For now, just return the original text

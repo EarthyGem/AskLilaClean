@@ -113,40 +113,11 @@ class MyAgentChatController: UIViewController {
 
         Analytics.logEvent("specialFeatures_tabeView_viewed", parameters: nil)
 
-        // Check if user is admin using your existing method
-        isAdminUser { [weak self] isAdmin in
-            guard let self = self else { return }
-            self.isAdmin = isAdmin
-            if isAdmin {
-                self.addMigrationButton()
-                self.addTarotButton()
-                // Add Tarot button for admins only
-                if let storyButton = self.navigationItem.rightBarButtonItems?.first(where: {
-                    ($0.customView as? UILabel)?.text == "📖"
-                }) {
-                    let tarotLabel = UILabel()
-                    tarotLabel.text = "🎴"
-                    tarotLabel.font = UIFont.systemFont(ofSize: 28)
-                    tarotLabel.sizeToFit()
-                    tarotLabel.isUserInteractionEnabled = true
-                    let tarotTapGesture = UITapGestureRecognizer(target: self, action: #selector(self.showTarotYesNoTapped))
-                    tarotLabel.addGestureRecognizer(tarotTapGesture)
-                    let tarotButton = UIBarButtonItem(customView: tarotLabel)
-
-                    // Insert tarot button after 📖 story button
-                    if let index = self.navigationItem.rightBarButtonItems?.firstIndex(of: storyButton) {
-                        self.navigationItem.rightBarButtonItems?.insert(tarotButton, at: index + 1)
-                    } else {
-                        self.navigationItem.rightBarButtonItems?.append(tarotButton)
-                    }
-                }
-            }
-        }
-
+    
 
         // Initial greeting message
         let greetingMessage = """
-        🌟 Welcome to Ask Lila!.
+        💁🏽‍♀️ Welcome to Ask Lila!.
 
         ✨ How to Use Me:
         - You can ask me a question about your chart.
@@ -182,81 +153,52 @@ class MyAgentChatController: UIViewController {
 
 
     private func setupNavigationBar() {
-        // Soulful symbols and icons
-        let calendarIcon = UIImage(systemName: "calendar")
-        let personIcon = UIImage(systemName: "person.2")
-        let aiIcon = UIImage(systemName: "brain.head.profile")
-        let gearIcon = UIImage(systemName: "gearshape")
-        let historyIcon = UIImage(systemName: "clock.arrow.circlepath")
+        // 📖 South Node Story
+        let showStoryButton = makeEmojiBarButton("📖", action: #selector(showSouthNodeStoryTapped))
+        
+        // 🧚🏿‍♂️ Soul Stats
+        let statsButton = makeEmojiBarButton("🧚🏿‍♂️", action: #selector(showStatsTapped))
 
-        // 📖 Big storybook emoji for South Node Story
-        let storyLabel = UILabel()
-        storyLabel.text = "📖"
-        storyLabel.font = UIFont.systemFont(ofSize: 28)
-        storyLabel.isUserInteractionEnabled = true
-        let storyTapGesture = UITapGestureRecognizer(target: self, action: #selector(showSouthNodeStoryTapped))
-        storyLabel.addGestureRecognizer(storyTapGesture)
-        let showStoryButton = UIBarButtonItem(customView: storyLabel)
+        // 📅 Select Date
+        let selectDateButton = makeEmojiBarButton("📅", action: #selector(selectDateTapped))
 
-        // 🧚🏿‍♂️ Soulful fairy emoji for Soul Stats
-        let fairyLabel = UILabel()
-        fairyLabel.text = "🧚🏿‍♂️"
-        fairyLabel.font = UIFont.systemFont(ofSize: 28)
-        fairyLabel.sizeToFit()
-        fairyLabel.isUserInteractionEnabled = true
-        let statsTapGesture = UITapGestureRecognizer(target: self, action: #selector(showStatsTapped))
-        fairyLabel.addGestureRecognizer(statsTapGesture)
-        let statsButton = UIBarButtonItem(customView: fairyLabel)
+        // 🧑‍🤝‍🧑 Select Partner
+        let addPartnerButton = makeEmojiBarButton("👥", action: #selector(selectPartnerTapped))
 
-     
+        // 🧠 Select AI Service
+        let selectAIServiceButton = makeEmojiBarButton("🧠", action: #selector(selectAIServiceTapped))
 
-        // Other buttons
-        let historyButton = UIBarButtonItem(image: historyIcon, style: .plain, target: self, action: #selector(showConversationHistory))
-        let selectDateButton = UIBarButtonItem(image: calendarIcon, style: .plain, target: self, action: #selector(selectDateTapped))
-        let addPartnerButton = UIBarButtonItem(image: personIcon, style: .plain, target: self, action: #selector(selectPartnerTapped))
-        let selectAIServiceButton = UIBarButtonItem(image: aiIcon, style: .plain, target: self, action: #selector(selectAIServiceTapped))
-        let editChartButton = UIBarButtonItem(image: gearIcon, style: .plain, target: self, action: #selector(editChartTapped))
+        // ⚙️ Edit Chart
+        let editChartButton = makeEmojiBarButton("⚙️", action: #selector(editChartTapped))
 
-        // 🌼 Add buttons to navigation bar
-        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, showStoryButton]
-        navigationItem.leftBarButtonItems = [editChartButton, selectAIServiceButton, historyButton, statsButton]
+        // 🕰️ Conversation History
+        let historyButton = makeEmojiBarButton("🗂️", action: #selector(showConversationHistory))
+
+        // 🌼 Final nav layout
+        navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, selectAIServiceButton, statsButton]
+        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton, ]
 
         updateAIServiceIndicator()
     }
-    private func addTarotButton() {
-    
-                                  let tarotLabel = UILabel()
-                                  tarotLabel.text = "🎴"  // Alternatively, could use "🔮" (crystal ball)
-                                  tarotLabel.font = UIFont.systemFont(ofSize: 28)
-                                  tarotLabel.sizeToFit()
-                                  tarotLabel.isUserInteractionEnabled = true
-                                  let tarotTapGesture = UITapGestureRecognizer(target: self, action: #selector(showTarotYesNoTapped))
-                                  tarotLabel.addGestureRecognizer(tarotTapGesture)
-                              
-        let tarotButton = UIBarButtonItem(customView: tarotLabel)
-        navigationItem.rightBarButtonItems?.append(tarotButton)
-    }
-    
-    private func addMigrationButton() {
-        let migrateIcon = UIImage(systemName: "arrow.triangle.2.circlepath.doc.on.clipboard")
-        let migrateButton = UIBarButtonItem(image: migrateIcon, style: .plain, target: self, action: #selector(showMigrationVC))
-        navigationItem.rightBarButtonItems?.append(migrateButton)
-    }
 
-    @objc private func showMigrationVC() {
-        let migrationVC = DataMigrationViewController()
-        navigationController?.pushViewController(migrationVC, animated: true)
-    }
+    private func makeEmojiBarButton(_ emoji: String, action: Selector) -> UIBarButtonItem {
+        let label = UILabel()
+        label.text = emoji
+        label.font = UIFont.systemFont(ofSize: 28) // Set once for all buttons
+        label.sizeToFit()
+        label.isUserInteractionEnabled = true
 
-    // Add this method to handle the tarot button tap
-    @objc private func showTarotYesNoTapped() {
-        let tarotVC = WishSpreadViewController()
-        let navController = UINavigationController(rootViewController: tarotVC)
-        navController.modalPresentationStyle = .pageSheet
-        present(navController, animated: true, completion: nil)
+        let tapGesture = UITapGestureRecognizer(target: self, action: action)
+        label.addGestureRecognizer(tapGesture)
+
+        return UIBarButtonItem(customView: label)
     }
 
     
+  
+    
+
+  
     @objc private func showConversationHistory() {
         // Present the AI service selector
         let historyVC = ConversationHistoryViewController()
@@ -603,19 +545,9 @@ class MyAgentChatController: UIViewController {
 
     @objc private func editChartTapped() {
 
-        print("🛠️ Edit tapped — attempting to call SceneDelegate...")
-
-        if let windowScene = view.window?.windowScene,
-           let sceneDelegate = windowScene.delegate as? SceneDelegate {
-            print("✅ Found SceneDelegate via windowScene")
-            sceneDelegate.showEditChartScreen()
-        } else {
-            print("⚠️ SceneDelegate is nil or not ready")
-
-            print("Edit button tapped - using direct approach")
 
             // Simple direct approach: Create and present the edit view controller directly
-            let editVC = EditChartViewController()
+            let editVC = SettingsMenuViewController()
             editVC.chartCake = self.chartCake
 
             // Present modally with a navigation controller
@@ -625,7 +557,7 @@ class MyAgentChatController: UIViewController {
 
             }
         }
-    }
+    
 
     @objc func showSouthNodeStoryTapped() {
         // Create the South Node Story view controller
@@ -647,7 +579,7 @@ class MyAgentChatController: UIViewController {
         
         // Add the greeting message first
         let greetingMessage = """
-        🌟 Welcome to Ask Lila! I'm Lila, your AI astrology partner.
+        💁🏽‍♀️ Welcome to Ask Lila! I'm Lila, your AI astrology partner.
 
         ✨ How to Use Me:
         - You can ask me a question about your chart.
@@ -848,6 +780,25 @@ class MyAgentChatController: UIViewController {
     @objc private func sendMessage() {
         guard let text = messageInputField.text, !text.isEmpty else { return }
 
+        let category: AskLilaCategory
+        if otherChart != nil {
+            category = .relationship
+        } else if transitChartCake != nil {
+            category = .dateInsight
+        } else {
+            category = .selfInsight
+        }
+
+        guard AccessManager.shared.canUse(category) else {
+            let paywall = PaywallViewController()
+            let nav = UINavigationController(rootViewController: paywall)
+            present(nav, animated: true)
+            return
+        }
+
+        AccessManager.shared.increment(category)
+
+        // ✅ Proceed with everything you already have below this
         messages.append((text, true))
         chatTableView.reloadData()
         scrollToBottom()

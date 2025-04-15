@@ -334,10 +334,17 @@ extension SceneDelegate: EditChartViewControllerDelegate {
             print("✅ Set Claude as default AI service")
         }
 
-        // Delay a little to avoid race conditions at app startup
+        // Delay to avoid startup race conditions
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             self.requestTrackingPermissionIfNeeded()
+
+            // ✅ Update subscription level
+            Task {
+                await (UIApplication.shared.delegate as? AppDelegate)?.updateSubscriptionLevel()
+                print("✅ Subscription level refreshed from StoreKit")
+            }
         }
     }
+
 
 }

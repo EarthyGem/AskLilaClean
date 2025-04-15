@@ -142,7 +142,7 @@ func buildSoulProfiles(from profile: UserChartProfile) -> (SoulValuesProfile, Al
         communicationMode: communicationMode(from: mercurySign),
         blossomingConditions: blossomingConditions(from: moonSign, aspects: topMoonAspects),
         radiancePath: sunRadianceTheme(from: sunSign, sunHouse), // 🌞 new
-        cognitiveFocus: cognitiveFocus(from: mercuryHouse),
+        cognitiveFocus: cognitiveFocus(from: mercuryHouse)
 
       
     )

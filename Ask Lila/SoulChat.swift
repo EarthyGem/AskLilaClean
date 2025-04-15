@@ -45,6 +45,8 @@ class SoulChatViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        addPlanStatusLabel()
+
         view.backgroundColor = .systemBackground
         title = "Chat with Lila 🌿"
         setupKeyboardNotifications()
@@ -71,6 +73,29 @@ class SoulChatViewController: UIViewController {
         toneProfile = tone
         relationalSignature = relation
     }
+    private func addPlanStatusLabel() {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
+        label.textColor = .white
+        label.backgroundColor = AccessManager.shared.currentLevel == .trial ? .systemOrange :
+                                 AccessManager.shared.currentLevel == .full ? .systemBlue :
+                                 .systemGreen
+        label.layer.cornerRadius = 8
+        label.clipsToBounds = true
+        label.text = "Current Plan: \(AccessManager.shared.currentLevel)"
+
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.heightAnchor.constraint(equalToConstant: 28),
+            label.widthAnchor.constraint(greaterThanOrEqualToConstant: 180)
+        ])
+    }
+
 
     private func setupUI() {
         tableView.dataSource = self
@@ -239,15 +264,37 @@ class SoulChatViewController: UIViewController {
    
     @objc private func sendTapped() {
         guard let text = inputTextView.text, !text.isEmpty else { return }
+
+        let category: AskLilaCategory = .selfInsight
+
+        guard AccessManager.shared.canUse(category) else {
+            showPaywall()
+            return
+        }
+
+        AccessManager.shared.increment(category)
+
+        // Optional: show remaining messages
+        if let remaining = AccessManager.shared.remainingUses(for: category),
+           AccessManager.shared.currentLevel != .premium {
+            addSystemMessage("🧠 You have \(remaining) soul chat message\(remaining == 1 ? "" : "s") left today.")
+        }
+
         messages.append((text, true))
         inputTextView.text = ""
         tableView.reloadData()
         scrollToBottom()
 
-        // Save messages after each new message
+        // Save messages
         saveMessages()
 
         sendMessageToLila(userMessage: text)
+    }
+    private func showPaywall() {
+        let paywallVC = PaywallViewController()
+        let nav = UINavigationController(rootViewController: paywallVC)
+        nav.modalPresentationStyle = .formSheet
+        present(nav, animated: true)
     }
 
     private func addSystemMessage(_ text: String) {

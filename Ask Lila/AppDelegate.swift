@@ -8,7 +8,9 @@
 import UIKit
 import CoreData
 import FirebaseCore
+import FirebaseAuth
 import AppTrackingTransparency
+import StoreKit
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,11 +18,53 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         // ✅ Initialize Firebase
-           FirebaseApp.configure()
+        FirebaseApp.configure()
         
         debugCoreDataStore()
+        
+        // Set up authentication state listener
+        setupAuthStateListener()
+        
+        // Check if user is logged in and migrate if needed
+        if Auth.auth().currentUser != nil {
+            print("🔄 User is already logged in, checking for migration needs")
+            MigrationManager.shared.checkAndMigrateCurrentUserIfNeeded { success in
+                if success {
+                    print("✅ User profile migration successful or already completed on app launch")
+                } else {
+                    print("⚠️ User profile migration not performed or failed on app launch")
+                }
+            }
+        }
+        
         // Override point for customization after application launch.
         return true
+    }
+    
+    // Set up Firebase Auth state listener
+    func setupAuthStateListener() {
+        Auth.auth().addStateDidChangeListener { [weak self] (auth, user) in
+            if let user = user {
+                // User just signed in
+                print("👤 User signed in: \(user.uid)")
+                
+                // Update UserDefaults with Firebase UID
+                UserDefaults.standard.set(user.uid, forKey: "currentUserId")
+                
+                // Check migration
+                MigrationManager.shared.checkAndMigrateCurrentUserIfNeeded { success in
+                    if success {
+                        print("✅ User profile migration successful after sign-in")
+                    } else {
+                        print("⚠️ User profile migration not performed or failed after sign-in")
+                    }
+                }
+            } else {
+                // User signed out
+                print("👋 User signed out")
+                UserDefaults.standard.removeObject(forKey: "currentUserId")
+            }
+        }
     }
 
     // MARK: UISceneSession Lifecycle
@@ -166,18 +210,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: - Authentication Helper Methods
     
     func isUserLoggedIn() -> Bool {
-        // Check if user is logged in using UserDefaults
+        // First check Firebase Auth
+        if Auth.auth().currentUser != nil {
+            return true
+        }
+        // Fall back to UserDefaults check
         return UserDefaults.standard.string(forKey: "currentUserId") != nil
     }
     
     func loginUser(userId: String) {
         // Save user ID to UserDefaults
         UserDefaults.standard.set(userId, forKey: "currentUserId")
+        
+        // Check for migration needs when manually logging in
+        MigrationManager.shared.checkAndMigrateCurrentUserIfNeeded { success in
+            print("Manual login migration check: \(success ? "Completed" : "Failed/Skipped")")
+        }
     }
     
     func logoutUser() {
         // Remove user ID from UserDefaults
         UserDefaults.standard.removeObject(forKey: "currentUserId")
+        
+        // Also sign out from Firebase Auth
+        do {
+            try Auth.auth().signOut()
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
+        }
     }
 }
 
@@ -191,4 +251,25 @@ extension AppDelegate {
             }
         }
     }
+    @MainActor
+    func updateSubscriptionLevel() async {
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result else { continue }
+
+            switch transaction.productID {
+            case "asklila.full":
+                AccessManager.shared.updateLevel(to: .full)
+                return
+            case "asklila.premium":
+                AccessManager.shared.updateLevel(to: .premium)
+                return
+            default:
+                break
+            }
+        }
+        
+        // If no entitlements found
+        AccessManager.shared.updateLevel(to: .trial)
+    }
+
 }
