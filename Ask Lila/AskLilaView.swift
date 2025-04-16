@@ -153,6 +153,10 @@ class MyAgentChatController: UIViewController {
 
 
     private func setupNavigationBar() {
+        
+        // 🌦️ South Node Story
+        let showForecastButton = makeEmojiBarButton("🌦️", action: #selector(showForecastTapped))
+        
         // 📖 South Node Story
         let showStoryButton = makeEmojiBarButton("📖", action: #selector(showSouthNodeStoryTapped))
         
@@ -176,7 +180,7 @@ class MyAgentChatController: UIViewController {
 
         // 🌼 Final nav layout
         navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, selectAIServiceButton, statsButton]
-        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton, ]
+        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton,showForecastButton ]
 
         updateAIServiceIndicator()
     }
@@ -896,6 +900,10 @@ class MyAgentChatController: UIViewController {
             }
         }
     }
+    
+    
+    
+    
     private func handleAgentResponse(_ response: String?, originalText: String) {
         DispatchQueue.main.async {
             self.loadingIndicator.stopAnimating()
@@ -1344,6 +1352,30 @@ extension MyAgentChatController: PartnerSelectionDelegate {
         print("✅ Selected Partner: \(chartCake.name ?? "Unknown")")
         autoPromptForNewPartnerContext()
     }
+}
+
+// MARK: - Forecast Integration
+
+extension MyAgentChatController {
+    @objc func showForecastTapped() {
+        guard let chartCake = chartCake else {
+            addSystemMessage("⚠️ No chart available to generate forecast.")
+            return
+        }
+        
+        let forecastVC = ForecastViewController(chartCake: chartCake)
+        forecastVC.chartCake = chartCake
+        forecastVC.delegate = self
+        
+        let navController = UINavigationController(rootViewController: forecastVC)
+        present(navController, animated: true)
+        
+        // Log analytics event
+        Analytics.logEvent("forecast_viewed", parameters: nil)
+    }
+    
+
+  
 }
 // MARK: - AIServiceDelegate
 extension MyAgentChatController: AIServiceDelegate {

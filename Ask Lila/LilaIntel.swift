@@ -316,6 +316,8 @@ enum Element {
     case emotion        // Water
 }
 
+
+
 enum Modality {
     case pioneer     // Cardinal
     case perfector   // Fixed

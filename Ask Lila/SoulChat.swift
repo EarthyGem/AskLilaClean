@@ -48,7 +48,7 @@ class SoulChatViewController: UIViewController {
         addPlanStatusLabel()
 
         view.backgroundColor = .systemBackground
-        title = "Chat with Lila 🌿"
+        title = "Chat with Spiritual Lila 🧚🏿"
         setupKeyboardNotifications()
         setupUI()
         generateProfiles()

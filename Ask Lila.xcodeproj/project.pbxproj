@@ -21,6 +21,7 @@
 		3928F01B2DAD9D480023BBD3 /* SettingsVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F01A2DAD9D480023BBD3 /* SettingsVC.swift */; };
 		3928F01D2DADC8C90023BBD3 /* AccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F01C2DADC8C90023BBD3 /* AccessManager.swift */; };
 		3928F01F2DADD7450023BBD3 /* PaywallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3928F01E2DADD7450023BBD3 /* PaywallViewController.swift */; };
+		39330CFF2DAF400300333430 /* ForecasteVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39330CFE2DAF400300333430 /* ForecasteVC.swift */; };
 		3962569C2D89365400ECCF68 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3962569B2D89365400ECCF68 /* GoogleSignInSwift */; };
 		396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256A92D89F23100ECCF68 /* LoginVC.swift */; };
 		396256B82D89F23300ECCF68 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256AB2D89F23200ECCF68 /* Files.swift */; };
@@ -114,6 +115,7 @@
 		3928F01A2DAD9D480023BBD3 /* SettingsVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsVC.swift; sourceTree = "<group>"; };
 		3928F01C2DADC8C90023BBD3 /* AccessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessManager.swift; sourceTree = "<group>"; };
 		3928F01E2DADD7450023BBD3 /* PaywallViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallViewController.swift; sourceTree = "<group>"; };
+		39330CFE2DAF400300333430 /* ForecasteVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecasteVC.swift; sourceTree = "<group>"; };
 		396256A92D89F23100ECCF68 /* LoginVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginVC.swift; sourceTree = "<group>"; };
 		396256AB2D89F23200ECCF68 /* Files.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		396256AC2D89F23200ECCF68 /* MyUserProfileData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MyUserProfileData.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 				39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */,
 				3988525C2DAAE92D0000470F /* Tarot.swift */,
 				3928F01A2DAD9D480023BBD3 /* SettingsVC.swift */,
+				39330CFE2DAF400300333430 /* ForecasteVC.swift */,
 				3928F01C2DADC8C90023BBD3 /* AccessManager.swift */,
 				398852642DAC10200000470F /* PyramidSpreadViewController.swift */,
 				39DBF6842DA0601A00AF97E4 /* Rasta.swift */,
@@ -475,6 +478,7 @@
 				396256B92D89F23300ECCF68 /* MyUserProfileData.swift in Sources */,
 				396256BF2D89F23300ECCF68 /* NodalStory.swift in Sources */,
 				3914D3252DA8DF1F00AAF32B /* Welcome.swift in Sources */,
+				39330CFF2DAF400300333430 /* ForecasteVC.swift in Sources */,
 				396256D72D89F23E00ECCF68 /* AIService.swift in Sources */,
 				3928F01D2DADC8C90023BBD3 /* AccessManager.swift in Sources */,
 				396256C22D89F23300ECCF68 /* SceneDelegate.swift in Sources */,
