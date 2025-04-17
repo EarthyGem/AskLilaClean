@@ -38,7 +38,7 @@ class MyAgentChatController: UIViewController {
     private var useSuperchargedAgent = UserDefaults.standard.bool(forKey: "useSuperchargedAgent")
     var userChart: UserChartProfile!
 
-
+    private var trialBannerView: TrialBannerView?
     // UI Elements
     private let chatTableView = UITableView()
     private let messageInputField: UITextView = {
@@ -97,7 +97,11 @@ class MyAgentChatController: UIViewController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             self.setupNavigationBar()
         }
-
+        // Initialize trial if needed
+          TrialUsageManager.shared.initializeTrialIfNeeded()
+          
+          // Setup trial banner if user is in trial mode
+          setupTrialBannerIfNeeded()
         startNewConversation()
         print(chartCake.natal.asteroids.compactMap {$0.formatted})
         print("💬 AgentChat loaded with chartCake: \(chartCake?.name ?? "nil")")
@@ -129,7 +133,214 @@ class MyAgentChatController: UIViewController {
         messages.append((greetingMessage, false))
         chatTableView.reloadData()
     }
+    
+    @objc private func sendMessage() {
+        guard let text = messageInputField.text, !text.isEmpty else { return }
 
+        let category: AskLilaCategory
+        if otherChart != nil {
+            category = .relationship
+        } else if transitChartCake != nil {
+            category = .dateInsight
+        } else {
+            category = .selfInsight
+        }
+
+        func isRunningOnSimulator() -> Bool {
+            #if targetEnvironment(simulator)
+            return true
+            #else
+            return false
+            #endif
+        }
+
+        let isSimulator = isRunningOnSimulator()
+
+        // Always verify subscription status before checking access
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            Task {
+                // Force check the subscription status to ensure we have latest info
+                await appDelegate.updateSubscriptionLevel()
+                
+                // Continue on the main thread after subscription check
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    
+                    print("⚙️ Current subscription level: \(AccessManager.shared.currentLevel)")
+                    
+                    // Check access after subscription update
+                    if !isSimulator {
+                        if !AccessManager.shared.canUse(category) {
+                            Swift.print("🚫 No access for \(category) with level \(AccessManager.shared.currentLevel), showing paywall.")
+                            let paywall = PaywallViewController()
+                            let nav = UINavigationController(rootViewController: paywall)
+                            self.present(nav, animated: true)
+                            return
+                        } else {
+                            AccessManager.shared.increment(category)
+                        }
+                    }
+                    
+                    // ✅ Proceed with everything you already have below this
+                    self.messages.append((text, true))
+                    self.chatTableView.reloadData()
+                    self.scrollToBottom()
+                    self.messageInputField.text = ""
+
+                    // Add a thoughtful consultation message
+                    let loadingMessage = self.contextAwareLoadingMessage()
+                    self.messages.append((loadingMessage, false))
+                    self.chatTableView.reloadData()
+                    self.scrollToBottom()
+
+                    // Show the loading indicator
+                    self.loadingIndicator.startAnimating()
+
+                    // Use transitChartCake if available, otherwise use the regular chart
+                    let chartToUse = self.transitChartCake ?? self.chartCake
+
+                    // Determine reading type based on available context
+                    let readingType: String
+                    if self.otherChart != nil {
+                        readingType = "SYNASTRY/RELATIONSHIP"
+                    } else if self.transitChartCake != nil {
+                        readingType = "TRANSIT & PROGRESSION"
+                    } else {
+                        readingType = "NATAL CHART"
+                    }
+                    let transitText = self.buildFourNetProfileString(transitDate: chartToUse?.transitDate ?? Date(), chartCake: chartToUse!)
+                    // Log the reading type
+                    print("🔍 Performing \(readingType) reading")
+                    var fullPrompt = ""
+
+                    if let context = self.chartSummaryContext {
+                        fullPrompt += """
+                        🧠 CHART MEMORY CONTEXT:
+                        \(context)
+
+                        """
+                    }
+
+                    // Add time context information for transit readings
+                    if readingType == "TRANSIT & PROGRESSION", let timeContext = UserDefaults.standard.dictionary(forKey: "transitTimeContext") {
+                        let isPast = timeContext["isPast"] as? Bool ?? false
+                        let isFuture = timeContext["isFuture"] as? Bool ?? false
+                        let yearsApart = timeContext["yearsApart"] as? Int ?? 0
+                        let monthsApart = timeContext["monthsApart"] as? Int ?? 0
+                        let daysApart = timeContext["daysApart"] as? Int ?? 0
+
+                        fullPrompt += """
+                        ⏳ TIME CONTEXT:
+                        - \(isPast ? "Past" : isFuture ? "Future" : "Current") date
+                        - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
+                        
+                        """
+                    }
+
+                    // Format the prompt to be more explicit about the context
+                    let formattedPrompt = """
+                    READING TYPE: \(readingType)
+                    
+                    \(fullPrompt)
+                    
+                    USER QUESTION: \(text)
+                    """
+                    // Track message sent event with Google Analytics
+                    Analytics.logEvent("regular_message_sent", parameters: [
+                        "reading_type": readingType,
+                        "message_length": text.count,
+                        "has_context": self.chartSummaryContext != nil
+                    ])
+                    // Send to Lila agent
+                    LilaAgentManager.shared.sendMessageToAgent(
+                        prompt: formattedPrompt,
+                        userChart: chartToUse,
+                        otherChart: self.otherChart, transitsContext: transitText
+                    ) { [weak self] response in
+                        guard let self = self else { return }
+
+                        DispatchQueue.main.async {
+                            // Stop the loading indicator
+                            self.loadingIndicator.stopAnimating()
+
+                            // Remove the loading message before adding the real response
+                            self.messages.removeLast()
+                            self.chatTableView.reloadData()
+
+                            if let response = response {
+                                self.messages.append((response, false))
+                                self.chatTableView.reloadData()
+                                self.scrollToBottom()
+                            } else {
+                                self.messages.append(("I'm sorry, I encountered an error while processing your request. Please try again.", false))
+                                self.chatTableView.reloadData()
+                                self.scrollToBottom()
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fallback if unable to get app delegate (shouldn't happen)
+            if !isSimulator {
+                if !AccessManager.shared.canUse(category) {
+                    Swift.print("🚫 No access, showing paywall.")
+                    let paywall = PaywallViewController()
+                    let nav = UINavigationController(rootViewController: paywall)
+                    present(nav, animated: true)
+                    return
+                } else {
+                    AccessManager.shared.increment(category)
+                }
+            }
+            
+            // Continue with regular flow (same code as above)
+            messages.append((text, true))
+            chatTableView.reloadData()
+            scrollToBottom()
+            messageInputField.text = ""
+            
+            // Rest of the existing code...
+            // (Duplicate the rest of your message handling code here in case AppDelegate is unavailable)
+        }
+    }
+    
+    private func setupTrialBannerIfNeeded() {
+           // Only show banner for trial users
+           if AccessManager.shared.currentLevel == .trial {
+               let banner = TrialBannerView()
+               banner.translatesAutoresizingMaskIntoConstraints = false
+               view.addSubview(banner)
+               
+               // Position banner at the top of the view, below the navigation bar
+               NSLayoutConstraint.activate([
+                   banner.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+                   banner.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+                   banner.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+               ])
+               
+               // Start countdown if we have an end date
+               if let endDate = TrialUsageManager.shared.trialEndDate {
+                   banner.startCountdown(endDate: endDate)
+               }
+               
+               trialBannerView = banner
+               
+               // Adjust table view content inset to account for banner
+               let bannerHeight = 70.0 // Approximate height of banner
+               chatTableView.contentInset = UIEdgeInsets(top: bannerHeight, left: 0, bottom: 0, right: 0)
+           } else {
+               // Remove banner if it exists and user is no longer in trial
+               trialBannerView?.removeFromSuperview()
+               trialBannerView = nil
+               chatTableView.contentInset = UIEdgeInsets.zero
+           }
+       }
+       
+       // Add this method to update the banner visibility when subscription status changes
+       func updateTrialBanner() {
+           setupTrialBannerIfNeeded()
+       }
     private func startNewConversation() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
@@ -180,7 +391,7 @@ class MyAgentChatController: UIViewController {
 
         // 🌼 Final nav layout
         navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, selectAIServiceButton, statsButton]
-        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton,showForecastButton ]
+        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton ]
 
         updateAIServiceIndicator()
     }
@@ -320,29 +531,101 @@ class MyAgentChatController: UIViewController {
         scrollToBottom()
     }
     // Then update the keyboard handling methods
+    // MARK: - Keyboard Handling
+    // MARK: - Keyboard Handling
+    private func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
+        // Add this to handle app returning from background
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+    }
+
+    // Override viewWillAppear instead of trying to observe it
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Reset keyboard handling when view appears
+        DispatchQueue.main.async {
+            self.view.endEditing(true)
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
+        }
+    }
+
     @objc private func keyboardWillShow(_ notification: Notification) {
+        // Get the keyboard size
         guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
               let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
               let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
         else { return }
-
+        
         let keyboardHeight = keyboardFrame.height
         let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
-
-        // Calculate the bottom constraint value
-        let bottomConstant = keyboardHeight - view.safeAreaInsets.bottom
-
-        UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
-            // Update the constraint to adjust for keyboard height
-            // Assuming you've stored this constraint as a property - you'll need to add this
-            self.view.constraints.first(where: { $0.firstAttribute == .bottom && $0.firstItem is UIView })?.constant = -bottomConstant
-
-            self.view.layoutIfNeeded()
-            self.chatTableView.contentInset.bottom = 0
-            self.chatTableView.scrollIndicatorInsets.bottom = 0
-            self.scrollToBottom()
+        
+        // Find the input container view
+        if let inputContainerView = self.view.subviews.first(where: { $0.subviews.contains(self.messageInputField) }) {
+            let bottomConstraint = self.view.constraints.first {
+                ($0.firstItem === inputContainerView && $0.firstAttribute == .bottom) ||
+                ($0.secondItem === inputContainerView && $0.secondAttribute == .bottom)
+            }
+            
+            UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
+                // Update the constraint to adjust for keyboard height
+                bottomConstraint?.constant = -keyboardHeight + self.view.safeAreaInsets.bottom
+                self.view.layoutIfNeeded()
+                self.scrollToBottom()
+            }
         }
     }
+
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
+              let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
+        else { return }
+        
+        let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+        
+        // Find the input container view
+        if let inputContainerView = self.view.subviews.first(where: { $0.subviews.contains(self.messageInputField) }) {
+            let bottomConstraint = self.view.constraints.first {
+                ($0.firstItem === inputContainerView && $0.firstAttribute == .bottom) ||
+                ($0.secondItem === inputContainerView && $0.secondAttribute == .bottom)
+            }
+            
+            UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
+                // Reset the constraint
+                bottomConstraint?.constant = 0
+                self.view.layoutIfNeeded()
+            }
+        }
+    }
+
+    // Handle returning to the view
+    @objc private func applicationWillEnterForeground() {
+        // Force layout refresh when app returns to foreground
+        DispatchQueue.main.async {
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
+        }
+    }
+
+    // Don't forget to clean up observers in deinit
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+
+    @objc private func viewWillAppear() {
+        // Reset keyboard handling when view appears
+        DispatchQueue.main.async {
+            self.view.endEditing(true)
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
+        }
+    }
+
+ 
     private func contextAwareLoadingMessage() -> String {
         if let _ = otherChart {
             // Synastry
@@ -399,31 +682,13 @@ class MyAgentChatController: UIViewController {
         }
     }
 
-    @objc private func keyboardWillHide(_ notification: Notification) {
-        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
-              let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
-        else { return }
-
-        let animationOptions = UIView.AnimationOptions(rawValue: curveRawValue << 16)
-
-        UIView.animate(withDuration: duration, delay: 0, options: animationOptions) {
-            // Reset the constraint
-            self.view.constraints.first(where: { $0.firstAttribute == .bottom && $0.firstItem is UIView })?.constant = 0
-
-            self.view.layoutIfNeeded()
-            self.chatTableView.contentInset.bottom = 0
-            self.chatTableView.scrollIndicatorInsets.bottom = 0
-        }
-    }
+    
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
 
     // MARK: - Keyboard Handling
-    private func setupKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
+   
     func topAspects(chartCake: ChartCake,
         to planet: CelestialObject,
         in aspectsScores: [CelestialAspect: Double],
@@ -781,127 +1046,7 @@ class MyAgentChatController: UIViewController {
         - This person is \(age). Please make recommendations age-appropriate.
         """
     }
-    @objc private func sendMessage() {
-        guard let text = messageInputField.text, !text.isEmpty else { return }
-
-        let category: AskLilaCategory
-        if otherChart != nil {
-            category = .relationship
-        } else if transitChartCake != nil {
-            category = .dateInsight
-        } else {
-            category = .selfInsight
-        }
-
-        guard AccessManager.shared.canUse(category) else {
-            let paywall = PaywallViewController()
-            let nav = UINavigationController(rootViewController: paywall)
-            present(nav, animated: true)
-            return
-        }
-
-        AccessManager.shared.increment(category)
-
-        // ✅ Proceed with everything you already have below this
-        messages.append((text, true))
-        chatTableView.reloadData()
-        scrollToBottom()
-        messageInputField.text = ""
-
-        // Add a thoughtful consultation message
-        let loadingMessage = contextAwareLoadingMessage()
-        messages.append((loadingMessage, false))
-        chatTableView.reloadData()
-        scrollToBottom()
-
-        // Show the loading indicator
-        loadingIndicator.startAnimating()
-
-        // Use transitChartCake if available, otherwise use the regular chart
-        let chartToUse = transitChartCake ?? chartCake
-
-        // Determine reading type based on available context
-        let readingType: String
-        if otherChart != nil {
-            readingType = "SYNASTRY/RELATIONSHIP"
-        } else if transitChartCake != nil {
-            readingType = "TRANSIT & PROGRESSION"
-        } else {
-            readingType = "NATAL CHART"
-        }
-        let transitText = buildFourNetProfileString(transitDate: chartToUse?.transitDate ?? Date(), chartCake: chartToUse!)
-        // Log the reading type
-        print("🔍 Performing \(readingType) reading")
-        var fullPrompt = ""
-
-        if let context = chartSummaryContext {
-            fullPrompt += """
-            🧠 CHART MEMORY CONTEXT:
-            \(context)
-
-            """
-        }
-
-        // Add time context information for transit readings
-        if readingType == "TRANSIT & PROGRESSION", let timeContext = UserDefaults.standard.dictionary(forKey: "transitTimeContext") {
-            let isPast = timeContext["isPast"] as? Bool ?? false
-            let isFuture = timeContext["isFuture"] as? Bool ?? false
-            let yearsApart = timeContext["yearsApart"] as? Int ?? 0
-            let monthsApart = timeContext["monthsApart"] as? Int ?? 0
-            let daysApart = timeContext["daysApart"] as? Int ?? 0
-
-            fullPrompt += """
-            ⏳ TIME CONTEXT:
-            - \(isPast ? "Past" : isFuture ? "Future" : "Current") date
-            - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
-            
-            """
-        }
-
-        // Format the prompt to be more explicit about the context
-        let formattedPrompt = """
-        READING TYPE: \(readingType)
-        
-        \(fullPrompt)
-        
-        USER QUESTION: \(text)
-        """
-        // Track message sent event with Google Analytics
-        Analytics.logEvent("regular_message_sent", parameters: [
-            "reading_type": readingType,
-            "message_length": text.count,
-            "has_context": chartSummaryContext != nil
-        ])
-        // Send to Lila agent
-        LilaAgentManager.shared.sendMessageToAgent(
-            prompt: formattedPrompt,
-            userChart: chartToUse,
-            otherChart: otherChart, transitsContext: transitText
-        ) { [weak self] response in
-            guard let self = self else { return }
-
-            DispatchQueue.main.async {
-                // Stop the loading indicator
-                self.loadingIndicator.stopAnimating()
-
-                // Remove the loading message before adding the real response
-                self.messages.removeLast()
-                self.chatTableView.reloadData()
-
-                if let response = response {
-                    self.messages.append((response, false))
-                    self.chatTableView.reloadData()
-                    self.scrollToBottom()
-                } else {
-                    self.messages.append(("I'm sorry, I encountered an error while processing your request. Please try again.", false))
-                    self.chatTableView.reloadData()
-                    self.scrollToBottom()
-                }
-            }
-        }
-    }
-    
-    
+  
     
     
     private func handleAgentResponse(_ response: String?, originalText: String) {

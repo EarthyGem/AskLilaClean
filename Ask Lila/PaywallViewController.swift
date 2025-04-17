@@ -208,7 +208,15 @@ class PaywallViewController: UIViewController {
             case .success(let verification):
                 let transaction = try verification.payloadValue
                 await transaction.finish()
-                await (UIApplication.shared.delegate as? AppDelegate)?.updateSubscriptionLevel()
+                
+                // Immediately update the subscription level
+                if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+                    await appDelegate.updateSubscriptionLevel()
+                    
+                    // Verify the level was updated correctly
+                    print("🛒 Purchase successful. New level: \(AccessManager.shared.currentLevel)")
+                }
+                
                 dismiss(animated: true)
             case .userCancelled:
                 print("Cancelled")

@@ -276,7 +276,7 @@ class LilaAgentManager {
             let payload = [
                 "prompt": prompt,
                 "temperature": 0.7,
-                "max_tokens": 600
+                "max_tokens": 250
             ] as [String : Any]
 
             request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
@@ -983,9 +983,9 @@ struct MyUserChartProfile {
 
     let ascendantSign: Zodiac
     let ascendantPower: Double
-    let ascendantRulerSigns: [Zodiac]
+ //   let ascendantRulerSigns: [Zodiac]
     let ascendantRulers: [CelestialObject]
-    let ascendantRulerHouses: [Int]
+  //  let ascendantRulerHouses: [Int]
     let ascendantRulerPowers: [Double]
    
 
@@ -999,7 +999,7 @@ struct MyUserChartProfile {
     let topAspectsToStrongestPlanet: [NatalAspectScore]
     let topAspectsToMoon: [NatalAspectScore]
     let topAspectsToAscendant: [NatalAspectScore]
-    let topAspectsToAscendantRulers: [NatalAspectScore]
+ //   let topAspectsToAscendantRulers: [NatalAspectScore]
 }
 
 import Foundation
@@ -1245,12 +1245,7 @@ class AgentPromptBuilder {
              natal.planets.first(where: { $0.body == ruler })
          }
 
-         let ascRulerHouses: [Int] = ascRulerCoordinates.map { natal.houseCusps.house(of: $0).number }
-         let ascRulerSigns: [Zodiac] = ascRulerCoordinates.map { $0.sign }
-
-         let ascRulerAspects: [NatalAspectScore] = ascRulers.flatMap {
-             topAspects(chartCake: cake, to: $0, in: aspectsScores)
-         }
+  
              let sunPower = cake.planetScores[natal.sun.body] ?? 0.0
              let moonPower = cake.planetScores[natal.moon.body] ?? 0.0
          let ascendantPower = cake.planetScores[natal.ascendantCoordinate.body] ?? 0.0
@@ -1276,9 +1271,9 @@ class AgentPromptBuilder {
              moonPower: moonPower,
              ascendantSign: ascSign,
              ascendantPower: ascendantPower,
-             ascendantRulerSigns: ascRulerSigns,
+     
              ascendantRulers: ascRulers,
-             ascendantRulerHouses: ascRulerHouses,
+         
              ascendantRulerPowers: ascendantRulerPowers,
 
              dominantHouseScores: cake.houseScoresSN,
@@ -1290,8 +1285,8 @@ class AgentPromptBuilder {
 
              topAspectsToStrongestPlanet: topAspects(chartCake: cake, to: strongest, in: aspectsScores),
              topAspectsToMoon: topAspects(chartCake: cake, to: natal.moon.body, in: aspectsScores),
-             topAspectsToAscendant: topAspects(chartCake: cake, to: natal.ascendantCoordinate.body, in: aspectsScores),
-             topAspectsToAscendantRulers: ascRulerAspects
+             topAspectsToAscendant: topAspects(chartCake: cake, to: natal.ascendantCoordinate.body, in: aspectsScores)
+            
          )
      }
     func generateTransitUserPrompt(
@@ -1433,7 +1428,7 @@ class AgentPromptBuilder {
             let natalPrompt = NatalPromptGenerator.generatePrompt(from: profile)
 
             return """
-            \(natalPrompt)
+            //   \(natalPrompt)
 
             HOUSE RULERSHIPS:
             \(formatHouseRulerships(for: userChart))

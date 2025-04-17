@@ -162,9 +162,9 @@ class CoTAnalysisViewController: UIViewController {
             moonPower: moonPower,
             ascendantSign: ascSign,
             ascendantPower: ascendantPower,
-            ascendantRulerSigns: ascRulerSigns,
+       
             ascendantRulers: ascRulers,
-            ascendantRulerHouses: ascRulerHouses,
+        
             ascendantRulerPowers: ascendantRulerPowers,
 
             dominantHouseScores: cake.houseScoresSN,
@@ -176,8 +176,8 @@ class CoTAnalysisViewController: UIViewController {
 
             topAspectsToStrongestPlanet: topAspects(to: strongest, in: aspectsScores),
             topAspectsToMoon: topAspects(to: natal.moon.body, in: aspectsScores),
-            topAspectsToAscendant: topAspects(to: natal.ascendantCoordinate.body, in: aspectsScores),
-            topAspectsToAscendantRulers: ascRulerAspects
+            topAspectsToAscendant: topAspects(to: natal.ascendantCoordinate.body, in: aspectsScores)
+        
         )
     }
     func buildSynastryContext(chartA: ChartCake, chartB: ChartCake, synastryChart: SynastryChart) -> SynastryContext {

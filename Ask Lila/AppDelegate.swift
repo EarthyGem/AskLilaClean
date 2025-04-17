@@ -249,27 +249,47 @@ extension AppDelegate {
             if #available(iOS 14.5, *) {
                 ATTrackingManager.requestTrackingAuthorization(completionHandler: { _ in })
             }
+            
+            // Check subscription status on app activation
+            Task {
+                await self.updateSubscriptionLevel()
+            }
         }
     }
+    
     @MainActor
     func updateSubscriptionLevel() async {
+        var hasActiveSubscription = false
+        
+        // Check for active subscriptions
         for await result in Transaction.currentEntitlements {
-            guard case .verified(let transaction) = result else { continue }
+            guard case .verified(let transaction) = result else {
+                print("⚠️ Non-verified transaction found")
+                continue
+            }
 
+            print("✅ Verified transaction: \(transaction.productID)")
+            
             switch transaction.productID {
-            case "asklila.full":
+            case "asklila.fullAccess":
                 AccessManager.shared.updateLevel(to: .full)
+                hasActiveSubscription = true
                 return
-            case "asklila.premium":
+            case "asklila.premiumAccess":
                 AccessManager.shared.updateLevel(to: .premium)
+                hasActiveSubscription = true
                 return
             default:
+                print("⚠️ Unknown product ID: \(transaction.productID)")
                 break
             }
         }
         
-        // If no entitlements found
-        AccessManager.shared.updateLevel(to: .trial)
+        // If no subscriptions found, ensure we're in trial mode
+        if !hasActiveSubscription {
+            AccessManager.shared.updateLevel(to: .trial)
+        }
+        
+        print("🔑 Current subscription level: \(AccessManager.shared.currentLevel)")
     }
-
 }

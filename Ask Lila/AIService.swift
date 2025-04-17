@@ -305,7 +305,7 @@ class OpenAIAstrologyService: BaseAstrologyService, AIService {
     private let model: String
     private let maxTokens: Int
     
-    init(apiKey: String, model: String = "gpt-4o", maxTokens: Int = 2000) {
+    init(apiKey: String, model: String = "gpt-4o", maxTokens: Int = 250) {
         self.apiKey = apiKey
         self.model = model
         self.maxTokens = maxTokens
@@ -467,7 +467,7 @@ class ClaudeAstrologyService: BaseAstrologyService, AIService {
     private let version = "2023-06-01"
     private let maxTokens: Int
     
-    init(apiKey: String, model: String = "claude-3-7-sonnet-20250219", maxTokens: Int = 4000) {
+    init(apiKey: String, model: String = "claude-3-7-sonnet-20250219", maxTokens: Int = 250) {
         self.apiKey = apiKey
         self.model = model
         self.maxTokens = maxTokens
