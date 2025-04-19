@@ -40,6 +40,7 @@
 		396256D92D89F4E700ECCF68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 396256D82D89F4E700ECCF68 /* Main.storyboard */; };
 		396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EEFEE2D98CE4D000AED12 /* manager.swift */; };
 		396EEFF32D98FFA5000AED12 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 396EEFF22D98FFA5000AED12 /* FirebaseAuthCombine-Community */; };
+		39869A582DB1654900404967 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39869A572DB1654900404967 /* Config.swift */; };
 		3988525D2DAAE92D0000470F /* Tarot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3988525C2DAAE92D0000470F /* Tarot.swift */; };
 		398852612DAB8FE50000470F /* ConversationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852602DAB8FE50000470F /* ConversationType.swift */; };
 		398852632DAC0DF80000470F /* MagicSevenSpreadViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */; };
@@ -77,7 +78,6 @@
 		39CC1F922D9DD90400615B2E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39CC1F912D9DD90400615B2E /* ViewController.swift */; };
 		39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6842DA0601A00AF97E4 /* Rasta.swift */; };
 		39DBF6872DA07E5A00AF97E4 /* SoulChat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */; };
-		39EED7892DA37588005E207D /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39EED7882DA37588005E207D /* Config.swift */; };
 		39FF45B62DACA5E000D1D91C /* DatePickerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */; };
 		39FF45BA2DAD647800D1D91C /* UserMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39FF45B92DAD647800D1D91C /* UserMigration.swift */; };
 /* End PBXBuildFile section */
@@ -133,6 +133,7 @@
 		396256CF2D89F23E00ECCF68 /* AIService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		396256D82D89F4E700ECCF68 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		396EEFEE2D98CE4D000AED12 /* manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = manager.swift; sourceTree = "<group>"; };
+		39869A572DB1654900404967 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		3988525C2DAAE92D0000470F /* Tarot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot.swift; sourceTree = "<group>"; };
 		398852602DAB8FE50000470F /* ConversationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationType.swift; sourceTree = "<group>"; };
 		398852622DAC0DF80000470F /* MagicSevenSpreadViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicSevenSpreadViewController.swift; sourceTree = "<group>"; };
@@ -151,7 +152,6 @@
 		39CC1F912D9DD90400615B2E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		39DBF6842DA0601A00AF97E4 /* Rasta.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rasta.swift; sourceTree = "<group>"; };
 		39DBF6862DA07E5A00AF97E4 /* SoulChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoulChat.swift; sourceTree = "<group>"; };
-		39EED7882DA37588005E207D /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		39FF45B52DACA5E000D1D91C /* DatePickerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerVC.swift; sourceTree = "<group>"; };
 		39FF45B92DAD647800D1D91C /* UserMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserMigration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -249,7 +249,7 @@
 				396256C82D89F23E00ECCF68 /* AppCoordinator.swift */,
 				396256B02D89F23200ECCF68 /* EditChart.swift */,
 				3928F0182DAD9C230023BBD3 /* AICostDashboardViewController.swift */,
-				39EED7882DA37588005E207D /* Config.swift */,
+				39869A572DB1654900404967 /* Config.swift */,
 				396256AB2D89F23200ECCF68 /* Files.swift */,
 				391DF0AB2D9E070A0082D515 /* GoogleService-Info.plist */,
 				396256B52D89F23300ECCF68 /* SceneDelegate.swift */,
@@ -449,7 +449,6 @@
 				398852632DAC0DF80000470F /* MagicSevenSpreadViewController.swift in Sources */,
 				396256BE2D89F23300ECCF68 /* PartnerViewController.swift in Sources */,
 				3928F0172DAD992C0023BBD3 /* CostSummary.swift in Sources */,
-				39EED7892DA37588005E207D /* Config.swift in Sources */,
 				39DBF6852DA0601A00AF97E4 /* Rasta.swift in Sources */,
 				391DF0AF2D9E07240082D515 /* Ask_Lila.xcdatamodeld in Sources */,
 				391E96BA2DAC191000AAAC1D /* HoroscopeSpreadViewController.swift in Sources */,
@@ -483,6 +482,7 @@
 				3928F01D2DADC8C90023BBD3 /* AccessManager.swift in Sources */,
 				396256C22D89F23300ECCF68 /* SceneDelegate.swift in Sources */,
 				396256D52D89F23E00ECCF68 /* AppCoordinator.swift in Sources */,
+				39869A582DB1654900404967 /* Config.swift in Sources */,
 				39AF9E992D9BA77000765A38 /* LilaIntel.swift in Sources */,
 				396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */,
 				396256B82D89F23300ECCF68 /* Files.swift in Sources */,

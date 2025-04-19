@@ -37,6 +37,9 @@ class MyAgentChatController: UIViewController {
     private var chartSummaryContext: String?
     private var useSuperchargedAgent = UserDefaults.standard.bool(forKey: "useSuperchargedAgent")
     var userChart: UserChartProfile!
+    private let jargonSlider = UISlider()
+    private let jargonLabel = UILabel()
+    private var currentJargonLevel: JargonLevel = .intermediate
 
     private var trialBannerView: TrialBannerView?
     // UI Elements
@@ -133,7 +136,13 @@ class MyAgentChatController: UIViewController {
         messages.append((greetingMessage, false))
         chatTableView.reloadData()
     }
-    
+    @objc private func jargonSliderChanged(_ sender: UISlider) {
+        let roundedValue = Int(sender.value.rounded())
+        currentJargonLevel = JargonLevel(rawValue: roundedValue) ?? .intermediate
+        jargonLabel.text = "Language: \(currentJargonLevel.label)"
+        UserDefaults.standard.set(roundedValue, forKey: "user_jargon_level")
+    }
+
     @objc private func sendMessage() {
         guard let text = messageInputField.text, !text.isEmpty else { return }
 
@@ -181,11 +190,6 @@ class MyAgentChatController: UIViewController {
                         }
                     }
                     
-                    // ✅ Proceed with everything you already have below this
-                    self.messages.append((text, true))
-                    self.chatTableView.reloadData()
-                    self.scrollToBottom()
-                    self.messageInputField.text = ""
 
                     // Add a thoughtful consultation message
                     let loadingMessage = self.contextAwareLoadingMessage()
@@ -237,14 +241,28 @@ class MyAgentChatController: UIViewController {
                         """
                     }
 
+                    let rawJargonLevel = UserDefaults.standard.integer(forKey: "user_jargon_level")
+                    let currentJargonLevel = JargonLevel(rawValue: rawJargonLevel) ?? .intermediate
+
+                    let jargonGuide = """
+                    LANGUAGE GUIDE:
+                    \(currentJargonLevel == .beginner ? "Use plain, natural language. Avoid astrology jargon unless absolutely necessary." :
+                     currentJargonLevel == .intermediate ? "Use soft astrology terms. Define or explain any complex words." :
+                     "Use full astrological terminology. User is fluent.")
+                    """
+
+
                     // Format the prompt to be more explicit about the context
                     let formattedPrompt = """
                     READING TYPE: \(readingType)
-                    
+
+                    \(jargonGuide)
+
                     \(fullPrompt)
-                    
+
                     USER QUESTION: \(text)
                     """
+
                     // Track message sent event with Google Analytics
                     Analytics.logEvent("regular_message_sent", parameters: [
                         "reading_type": readingType,
@@ -252,11 +270,14 @@ class MyAgentChatController: UIViewController {
                         "has_context": self.chartSummaryContext != nil
                     ])
                     // Send to Lila agent
-                    LilaAgentManager.shared.sendMessageToAgent(
-                        prompt: formattedPrompt,
-                        userChart: chartToUse,
-                        otherChart: self.otherChart, transitsContext: transitText
-                    ) { [weak self] response in
+                
+                        LilaAgentManager.shared.sendMessageToAgent(
+                            prompt: formattedPrompt,
+                            userChart: chartToUse,
+                            otherChart: self.otherChart,
+                            transitsContext: transitText,
+                            jargonLevel: currentJargonLevel  // 👈 passed here
+                        ) { [weak self] response in
                         guard let self = self else { return }
 
                         DispatchQueue.main.async {
@@ -293,15 +314,7 @@ class MyAgentChatController: UIViewController {
                     AccessManager.shared.increment(category)
                 }
             }
-            
-            // Continue with regular flow (same code as above)
-            messages.append((text, true))
-            chatTableView.reloadData()
-            scrollToBottom()
-            messageInputField.text = ""
-            
-            // Rest of the existing code...
-            // (Duplicate the rest of your message handling code here in case AppDelegate is unavailable)
+
         }
     }
     
@@ -422,8 +435,6 @@ class MyAgentChatController: UIViewController {
         present(navController, animated: true)
     }
 
-    // MARK: - UI Setup
-    // First, update the UI setup to add an input container view
     private func setupUI() {
         view.backgroundColor = .white
         title = "Ask Lila"
@@ -434,6 +445,7 @@ class MyAgentChatController: UIViewController {
         inputContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(inputContainerView)
 
+        // Chat table view
         chatTableView.dataSource = self
         chatTableView.delegate = self
         chatTableView.separatorStyle = .none
@@ -442,7 +454,7 @@ class MyAgentChatController: UIViewController {
         chatTableView.estimatedRowHeight = 50
         view.addSubview(chatTableView)
 
-        // Set up message input field
+        // Message input field
         messageInputField.isScrollEnabled = false
         messageInputField.font = UIFont.systemFont(ofSize: 16)
         messageInputField.layer.borderColor = UIColor.lightGray.cgColor
@@ -452,6 +464,7 @@ class MyAgentChatController: UIViewController {
         messageInputField.delegate = self
         inputContainerView.addSubview(messageInputField)
 
+        // Send button
         sendButton.setTitle("Send", for: .normal)
         sendButton.backgroundColor = .systemBlue
         sendButton.layer.cornerRadius = 5
@@ -459,43 +472,70 @@ class MyAgentChatController: UIViewController {
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         inputContainerView.addSubview(sendButton)
 
+        // Loading indicator
         view.addSubview(loadingIndicator)
 
+        // 🧠 Jargon slider + label
+        jargonSlider.minimumValue = 0
+        jargonSlider.maximumValue = 2
+        jargonSlider.translatesAutoresizingMaskIntoConstraints = false
+        jargonSlider.addTarget(self, action: #selector(jargonSliderChanged(_:)), for: .valueChanged)
+        let savedJargon = UserDefaults.standard.integer(forKey: "user_jargon_level")
+        currentJargonLevel = JargonLevel(rawValue: savedJargon) ?? .intermediate
+        jargonSlider.value = Float(currentJargonLevel.rawValue)
+        view.addSubview(jargonSlider)
+
+        jargonLabel.font = UIFont.systemFont(ofSize: 12)
+        jargonLabel.textAlignment = .center
+        jargonLabel.text = "Language: \(currentJargonLevel.label)"
+        jargonLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(jargonLabel)
+
+        // Layout
         NSLayoutConstraint.activate([
-            // Input container view constraints
+            // Input container
             inputContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             inputContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             inputContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             inputContainerView.heightAnchor.constraint(equalToConstant: 60),
 
-            // Chat table view constraints
+            // Chat table
             chatTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             chatTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             chatTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            chatTableView.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor),
+            chatTableView.bottomAnchor.constraint(equalTo: jargonSlider.topAnchor, constant: -16),
 
-            // Message input field constraints
+            // Message input
             messageInputField.leadingAnchor.constraint(equalTo: inputContainerView.leadingAnchor, constant: 16),
             messageInputField.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -10),
             messageInputField.centerYAnchor.constraint(equalTo: inputContainerView.centerYAnchor),
             messageInputField.heightAnchor.constraint(equalToConstant: 40),
 
-            // Send button constraints
+            // Send button
             sendButton.trailingAnchor.constraint(equalTo: inputContainerView.trailingAnchor, constant: -16),
             sendButton.centerYAnchor.constraint(equalTo: inputContainerView.centerYAnchor),
             sendButton.widthAnchor.constraint(equalToConstant: 80),
             sendButton.heightAnchor.constraint(equalToConstant: 40),
 
-            // Loading indicator constraints
+            // Loading spinner
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loadingIndicator.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: -10)
+            loadingIndicator.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: -10),
+
+            // Jargon slider + label
+            jargonSlider.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: -40),
+            jargonSlider.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            jargonSlider.widthAnchor.constraint(equalToConstant: 120),
+
+            jargonLabel.bottomAnchor.constraint(equalTo: jargonSlider.topAnchor, constant: -4),
+            jargonLabel.centerXAnchor.constraint(equalTo: jargonSlider.centerXAnchor)
         ])
 
-        // Add tap gesture recognizer to dismiss keyboard when tapping outside the text field
+        // Dismiss keyboard on tap
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         chatTableView.addGestureRecognizer(tapGesture)
     }
+
     
     @objc private func toggleAgentMode(_ sender: UISwitch) {
         useSuperchargedAgent = sender.isOn
@@ -1034,17 +1074,82 @@ class MyAgentChatController: UIViewController {
         let netFourData = chartCake.netFour()
 
         return """
-        ⏳ TIME CONTEXT:
-        - \(isPast ? "Past" : isFuture ? "Future" : "Present") date
-        - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
+                    ⏳ TIME CONTEXT:
+                    - \(isPast ? "Past" : isFuture ? "Future" : "Present") date
+                    - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
+                    
+                    TRANSIT DATA for \(formattedDate):
+                    - Most important activations: \(netOneData)
+                    - Supporting activations: \(netTwoData)
+                    - Slightly less important: \(netThreeData)
+                    - Daily triggers: \(netFourData)
+                    - This person is \(age). Please make recommendations age-appropriate.
+                    
+                    
+                    
+                    - **Transits and Progressions** reveal how life unfolds as an evolutionary journey of integration.
+                    
+                    Your role is to help \(chartCake.name) appreciate why **meaningful events have occurred, are occurring, and will occur**—not as random fate, but as opportunities for growth.
+                    
+                    💡 **Life happens for us, not to us.** Every planetary activation represents a **moment in our evolutionary path where we are ready to integrate the two planets in aspect in the 1 or more areas ruled by the natal planet being aspected**.
+                    
+                    🌟 How to Interpret Transits & Progressions
+                    1️⃣ Use Only the Provided Data
+                    Never estimate planetary movements. Use only the transits & progressions preloaded for the selected date.
+                    Stick to the given chart. Avoid speculation about planetary positions.
+                    
+                    2️⃣ Find the Main House of Concern
+                    Lila must first determine which house \(chartCake.name)'s question is about.
+                    If the user asks about relationships → 7th house
+                    If about career → 10th house
+                    If about spiritual retreats → 12th house
+                    If no house theme is obvious, ak follow up questions until a house theme becomes obvious.
+                    
+                    3️⃣ Prioritize Progressions to House Rulers
+                    Progressions are the primary indicators of major life themes.
+                    Lila must always check progressions to the house ruler first—this is the main indicator of why the experience is happening.
+                    The focus is on what planets are stimulating the house ruler, revealing the Planet responsible for the event.
+                    these activationg planets will either play teacher or trickster depending on well we handle them. Our job is to warn about the trickster and encourage allowing the stimulating planet to be a teacher.
+                    
+                    After progressions, transits to house rulers should be included to fine-tune the timing and expression of these themes.
+                    ---If there are no progressions to the house rulers, skip straight to tarnsits to house rulers---
+                    4️⃣ Focus Only on House Rulers
+                    House rulers determine activations—NOT planets simply transiting a house.
+                    A transit or progression to a house ruler is the only thing that activates the house.
+                    Planets inside a house mean nothing unless they rule it.
+                    All additional transits and progressions must be analyzed in the context of how they support the activation of the main house.
+                    
+                    
+                    🔹 House Rulers =
+                    ✅ Planets ruling the house cusp
+                    ✅ Planets inside the house
+                    ✅ Planets ruling intercepted signs
+                    
+                    
+                    🔑 Key Rules for Interpretation
+                    ✅ DO:
+                    ✔ First, determine the main house of concern based on the question.... MOTHER IS TENTH HOUSE and FATHER IS 4th HOUSE
+                    ✔ Check for progressions to the house ruler first—this is the main indicator of why the experience is happening.
+                    ✔ Next, analyze what planets are aspecting the house ruler to see what planets are providing the evolutionry impetus for the event.
+                    ✔ Only after progressions, check transits to house rulers to fine-tune the timing of the themes.
+                    ✔ Frame any additional transits in terms of how they support the activation of the main house.
+                    ✔ Always ask a follow-up question about whether \(chartCake.name) would like to know more about how the other current activations to their chart can contribute to the main theme
+                    ✔ Emphasize the evolutionary lesson of the aspect.
+                    ✔ Frame challenges as growth opportunities rather than fixed fates.
+                    ✔ Show how the integration of planetary energies supports soul evolution.
+                    
+                    🚫 DON'T:
+                    ❌ Ignore progressions—progressions are always the first layer of interpretation.
+                    ❌ Prioritize transits over progressions—transits are secondary fine-tuning, not the main activators.
+                    ❌ Mention transiting or progressed planets inside a house unless they are making aspects.
+                    ❌ Interpret transits/progressions unless they aspect the ruler of the main house.
+                    ❌ Discuss unrelated transits without linking them to the main house activation.
+                    ❌ Predict outcomes—guide \(chartCake.name) to reflect on integration instead.
+                    """
+
         
-        TRANSIT DATA for \(formattedDate):
-        - Most important activations: \(netOneData)
-        - Supporting activations: \(netTwoData)
-        - Slightly less important: \(netThreeData)
-        - Daily triggers: \(netFourData)
-        - This person is \(age). Please make recommendations age-appropriate.
-        """
+        
+
     }
   
     
@@ -1187,6 +1292,10 @@ class MyAgentChatController: UIViewController {
             longitude: longitude,
             transitDate: date
         )
+
+        // ✅ Ensure the `.transits.transitDate` is also populated:
+        transitChartCake?.transits.transitDate = date
+print("Transit Date: \(transitChartCake?.transits.transitDate)")
 
         // Store time difference data in user defaults for the model
         let timeContext: [String: Any] = [

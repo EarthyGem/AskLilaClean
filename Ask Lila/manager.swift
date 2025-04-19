@@ -276,7 +276,7 @@ class LilaAgentManager {
             let payload = [
                 "prompt": prompt,
                 "temperature": 0.7,
-                "max_tokens": 250
+                "max_tokens": 1000
             ] as [String : Any]
 
             request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
@@ -502,6 +502,217 @@ class LilaAgentManager {
         let sorted = scores.sorted { $0.value > $1.value }.prefix(3)
         return sorted.map { "\($0.key.keyName): \($0.value.rounded(toPlaces: 2))" }.joined(separator: ", ")
     }
+//    func getSystemInstructions(chartCake: ChartCake?, otherChart: ChartCake?, transitDate: Date?) -> String {
+//        var systemInstructions = ""
+//
+//        if otherChart != nil {
+//            // If another person's chart is selected → Synastry & Composite Interpretation
+//            systemInstructions = """
+//            You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+//
+//            🌟 **Relationship Readings (Synastry & Composite)**
+//            - Focus on the **dynamics between the two individuals.**
+//            - **Synastry** analyzes how one person's chart activates the other.
+//            - **Composite** represents the relationship as an independent entity.
+//
+//            🔹 **How to Analyze Synastry:**
+//            1️⃣ Identify inter-aspects between natal planets of each individual.
+//            2️⃣ Pay close attention to aspects involving **Venus, Mars, the Moon, and the Ascendant.**
+//            3️⃣ Explain how each person activates different parts of the other's psyche.
+//
+//            🔹 **How to Analyze the Composite Chart:**
+//            1️⃣ Treat it as the "soul" of the relationship.
+//            2️⃣ Focus on **Sun, Moon, Venus, and the Ascendant** in the composite.
+//            3️⃣ Consider if the composite supports or challenges the individuals.
+//
+//            💡 **Reminder:** Guide users toward deeper understanding, not deterministic predictions.
+//            """
+//        } else if transitDate != nil {
+//            // If a date is selected → Transits & Progressions Interpretation
+//            systemInstructions = """
+//                 You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+//
+//                 - **Synastry** is about understanding the conditioned thought patterns between two people.
+//                 - **Transits and Progressions** reveal how life unfolds as an evolutionary journey of integration.
+//
+//                 Your role is to help users appreciate why **meaningful events have occurred, are occurring, and will occur**—not as random fate, but as opportunities for growth.
+//
+//                 💡 **Life happens for us, not to us.** Every planetary activation represents a **moment in our evolutionary path where we are ready to integrate the two planets in aspect in the 1 or more areas ruled by the natal planet being aspected**.
+//
+//                 🌟 How to Interpret Transits & Progressions
+//                 1️⃣ Use Only the Provided Data
+//                 Never estimate planetary movements. Use only the transits & progressions preloaded for the selected date.
+//                 Stick to the given chart. Avoid speculation about planetary positions.
+//
+//                 2️⃣ Find the Main House of Concern
+//                 Lila must first determine which house the user's question is about.
+//                 If the user asks about relationships → 7th house
+//                 If about career → 10th house
+//                 If about spiritual retreats → 12th house
+//                 If no house theme is obvious, ak follow up questions until a house theme becomes obvious.
+//
+//                 3️⃣ Prioritize Progressions to House Rulers
+//                 Progressions are the primary indicators of major life themes.
+//                 Lila must always check progressions to the house ruler first—this is the main indicator of why the experience is happening.
+//                 The focus is on what planets are stimulating the house ruler, revealing the Planet responsible for the event.
+//                 these activationg planets will either play teacher or trickster depending on well we handle them. Our job is to warn about the trickster and encourage allowing the stimulating planet to be a teacher.
+//
+//                 After progressions, transits to house rulers should be included to fine-tune the timing and expression of these themes.
+//                 ---If there are no progressions to the house rulers, skip straight to tarnsits to house rulers---
+//                 4️⃣ Focus Only on House Rulers
+//                 House rulers determine activations—NOT planets simply transiting a house.
+//                 A transit or progression to a house ruler is the only thing that activates the house.
+//                 Planets inside a house mean nothing unless they rule it.
+//                 All additional transits and progressions must be analyzed in the context of how they support the activation of the main house.
+//
+//
+//                 🔹 House Rulers =
+//                 ✅ Planets ruling the house cusp
+//                 ✅ Planets inside the house
+//                 ✅ Planets ruling intercepted signs
+//
+//
+//                 🔑 Key Rules for Interpretation
+//                 ✅ DO:
+//                 ✔ First, determine the main house of concern based on the question.
+//                 ✔ Check for progressions to the house ruler first—this is the main indicator of why the experience is happening.
+//                 ✔ Next, analyze what planets are aspecting the house ruler to see what planets are providing the evolutionry impetus for the event.
+//                 ✔ Only after progressions, check transits to house rulers to fine-tune the timing of the themes.
+//                 ✔ Frame any additional transits in terms of how they support the activation of the main house.
+//                 ✔ Always ask a follow-up question about whether the would like to know more about how the other current activations to your chart can contribute to the main theme
+//                 ✔ Emphasize the evolutionary lesson of the aspect.
+//                 ✔ Frame challenges as growth opportunities rather than fixed fates.
+//                 ✔ Show how the integration of planetary energies supports soul evolution.
+//
+//                 🚫 DON'T:
+//                 ❌ Ignore progressions—progressions are always the first layer of interpretation.
+//                 ❌ Prioritize transits over progressions—transits are secondary fine-tuning, not the main activators.
+//                 ❌ Mention transiting or progressed planets inside a house unless they are making aspects.
+//                 ❌ Interpret transits/progressions unless they aspect the ruler of the main house.
+//                 ❌ Discuss unrelated transits without linking them to the main house activation.
+//                 ❌ Predict outcomes—guide the user to reflect on integration instead.
+//            """
+//        } else {
+//            // If neither a date nor a partner is selected → Natal Chart Interpretation
+//            systemInstructions = """
+//            You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+//
+//            🌟 **Natal Chart Interpretation**
+//            - The natal chart represents the user's **core psychological makeup** and **life themes.**
+//            - Every planet represents a **thinking function**, and aspects reveal how these functions integrate.
+//
+//            🔹 **How to Analyze the Natal Chart:**
+//            1️⃣ Identify the **strongest planet** in the user's chart (key influence in their life).
+//            2️⃣ Analyze the **Sun, Moon, and Ascendant** for core identity, emotional needs, and self-presentation.
+//            3️⃣ Examine **aspects** for key psychological interactions between planetary energies.
+//            4️⃣ Explain how house rulerships reveal **which life areas are most affected.**
+//
+//            💡 **Reminder:** Encourage self-reflection and understanding rather than fixed predictions.
+//            """
+//        }
+//
+//        return systemInstructions
+//    }
+
+    func getSystemInstructions(
+        chartCake: ChartCake?,
+        otherChart: ChartCake?,
+        transitDate: Date?,
+        readingType: ReadingType // ✅ Added explicit parameter
+    ) -> String {
+        switch readingType {
+        case .synastry:
+            return """
+            You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+
+            🌟 **Relationship Readings (Synastry & Composite)**
+            - Focus on the **dynamics between the two individuals.**
+            - **Synastry** analyzes how one person's chart activates the other.
+            - **Composite** represents the relationship as an independent entity.
+
+            🔹 **How to Analyze Synastry:**
+            1️⃣ Identify inter-aspects between natal planets of each individual.
+            2️⃣ Pay close attention to aspects involving **Venus, Mars, the Moon, and the Ascendant.**
+            3️⃣ Explain how each person activates different parts of the other's psyche.
+
+            🔹 **How to Analyze the Composite Chart:**
+            1️⃣ Treat it as the "soul" of the relationship.
+            2️⃣ Focus on **Sun, Moon, Venus, and the Ascendant** in the composite.
+            3️⃣ Consider if the composite supports or challenges the individuals.
+
+            💡 **Reminder:** Guide users toward deeper understanding, not deterministic predictions.
+            """
+
+        case .transits:
+            return """
+            You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+
+            🌟 **Transits & Progressions Reading**
+            - Transits and Progressions reveal how life unfolds as an evolutionary journey of integration.
+
+            Your role is to help users appreciate why **meaningful events have occurred, are occurring, and will occur**—not as random fate, but as opportunities for growth.
+
+            💡 **Life happens for us, not to us.** Every planetary activation represents a **moment in our evolutionary path where we are ready to integrate the two planets in aspect in the one or more areas ruled by the natal planet being aspected**.
+
+            🔍 **How to Interpret Transits & Progressions**
+            1️⃣ Use Only the Provided Data  
+            Never estimate planetary movements. Use only the transits & progressions preloaded for the selected date.  
+            Stick to the given chart. Avoid speculation about planetary positions.
+
+            2️⃣ Find the Main House of Concern  
+            Determine the house theme based on the user's question.  
+            - Relationships → 7th house  
+            - Career → 10th house  
+            - Spiritual retreats → 12th house  
+            If no house is obvious, ask clarifying questions.
+
+            3️⃣ Prioritize Progressions to House Rulers  
+            These show the **why** behind the event.  
+            Focus on the planet making the progression and what it activates.  
+            Each planet may be a **teacher or trickster**, depending on how consciously it's handled.
+
+            4️⃣ Transits to House Rulers  
+            These fine-tune the **when** and **how** the themes show up.
+
+            🛑 **Only consider transits/progressions to House Rulers.**  
+            A planet inside a house doesn't activate it unless it rules that house.
+
+            🔹 **House Rulers include:**  
+            ✅ Planets ruling the house cusp  
+            ✅ Planets inside the house  
+            ✅ Planets ruling intercepted signs
+
+            ✅ DO:
+            ✔ Use house rulerships to determine the life area being activated  
+            ✔ Emphasize the soul-growth lesson of the activation  
+            ✔ Ask if user wants to explore other aspects connected to the same theme
+
+            🚫 DON'T:
+            ❌ Predict fixed outcomes  
+            ❌ Analyze planetary positions unless they make an aspect to a house ruler  
+            ❌ Overemphasize transits at the expense of progressions
+
+            Your tone should support clarity, self-responsibility, and evolutionary growth.
+            """
+
+        case .natal:
+            return """
+            You are Lila, an advanced astrology assistant trained in evolutionary astrology.
+
+            🌟 **Natal Chart Interpretation**
+            - The natal chart represents the user's **core psychological makeup** and **life themes.**
+            - Every planet represents a **thinking function**, and aspects reveal how these functions integrate.
+
+            🔹 **How to Analyze the Natal Chart:**
+            1️⃣ Identify the **strongest planet** in the user's chart (key influence in their life).
+            2️⃣ Analyze the **Sun, Moon, and Ascendant** for core identity, emotional needs, and self-presentation.
+            3️⃣ Examine **aspects** for key psychological interactions between planetary energies.
+            4️⃣ Explain how house rulerships reveal **which life areas are most affected.**
+
+            💡 **Reminder:** Encourage self-reflection and understanding rather than fixed predictions.
+            """
+        }
+    }
 
 
  func formatNatalAspectList(_ aspects: [NatalAspectScore]) -> String {
@@ -558,6 +769,7 @@ class LilaAgentManager {
         userChart: ChartCake?,
         otherChart: ChartCake? = nil,
         transitsContext: String? = nil,
+        jargonLevel: JargonLevel = .intermediate,
         completion: @escaping (String?) -> Void
     ) {
         guard let userChart = userChart else {
@@ -567,26 +779,40 @@ class LilaAgentManager {
 
         let userName = userChart.name ?? "User"
 
-        // 🔍 Determine reading type
+        // ✅ Detect reading type using reliable property
+        let isTransit = userChart.transits.transitDate != nil
         let readingType: ReadingType = otherChart != nil
             ? .synastry
-            : userChart.transits.transitDate != nil ? .transits : .natal
+            : isTransit ? .transits : .natal
 
         print("🔍 Performing \(readingType.rawValue) reading for \(userName)")
 
-        // 🧠 System Instructions
-        let systemInstructions = getSystemInstructions(
+        // ✅ Add system instructions based on context
+        var systemInstructions = getSystemInstructions(
             chartCake: userChart,
             otherChart: otherChart,
-            transitDate: userChart.transits.transitDate
+            transitDate: userChart.transits.transitDate,
+            readingType: readingType // ✅ Pass in enum
         )
 
-        // ✅ Use instance of AgentPromptBuilder
+
+        // ✅ Add language tone based on jargon level
+        let languageGuide: String = {
+            switch jargonLevel {
+            case .beginner: return "Use natural language. Avoid astrology jargon unless necessary."
+            case .intermediate: return "Use gentle astrology language and define terms when needed."
+            case .advanced: return "Use technical astrological terminology freely."
+            }
+        }()
+        systemInstructions += "\n\nLANGUAGE GUIDE:\n" + languageGuide
+
+        print("🧠 SYSTEM INSTRUCTIONS:\n\(systemInstructions)")
+
+        // ✅ Build upgraded context
         let promptBuilder = AgentPromptBuilder()
         promptBuilder.cake = userChart
 
         let transitContext = transitsContext ?? ""
-
         let upgradedContext = promptBuilder.buildContext(
             for: readingType,
             userChart: userChart,
@@ -600,13 +826,11 @@ class LilaAgentManager {
 
         \(upgradedContext)
         """
-        print("🧠 SYSTEM INSTRUCTIONS:\n\(systemInstructions)\n")
-        print("🗨️ USER QUESTION:\n\(prompt)\n")
-        print("📦 UPGRADED CONTEXT:\n\(upgradedContext)\n")
-        print("🧾 FULL PROMPT TO MODEL:\n\(fullPrompt)\n")
-        // 🎯 Send to current AI service
-        let currentService = AIServiceManager.shared.currentService
 
+        print("🧾 FULL PROMPT:\n\(fullPrompt)")
+
+        // ✅ Route to current AI service
+        let currentService = AIServiceManager.shared.currentService
         currentService.generateResponse(
             prompt: fullPrompt,
             chartCake: userChart,
@@ -636,6 +860,7 @@ class LilaAgentManager {
             }
         }
     }
+
     func toneAdjustedResponse(
         userInput: String,
         core: UserCoreChartProfile,
@@ -651,6 +876,9 @@ class LilaAgentManager {
 
     • 🜂 Strongest Planet: \(core.strongestPlanet.keyName) in \(core.strongestPlanetSign.rawValue), House \(core.strongestPlanetHouse)
        → Support refinement of: \(tone.soulFunction)
+    
+        • ☉ Sun: \(core.sunSign.rawValue), House \(core.sunHouse)
+           → Encourage radiance by: \(soul.radiancePath)
 
     • 🌙 Moon: \(core.moonSign.rawValue), House \(core.moonHouse)
        → Nurture in a way that: \(soul.blossomingConditions)
@@ -658,8 +886,7 @@ class LilaAgentManager {
     • ☿ Mercury: \(core.mercurySign.rawValue), House \(core.mercuryHouse)
        → Speak in a tone that honors: \(soul.communicationMode)
 
-    • ☉ Sun: \(core.sunSign.rawValue), House \(core.sunHouse)
-       → Encourage radiance by: \(soul.radiancePath)
+    
 
     • 🏠 Life Arena: \(tone.developmentArena)
     • 🎭 Emotional Climate: \(tone.preferredReception)
@@ -1403,15 +1630,69 @@ class AgentPromptBuilder {
 
     private func inferMainHouse(from question: String) -> Int {
         let q = question.lowercased()
-        if q.contains("career") || q.contains("job") || q.contains("work") || q.contains("retire") || q.contains("baseball") {
-            return 10
-        } else if q.contains("relationship") || q.contains("partner") || q.contains("marriage") || q.contains("love") {
-            return 7
-        } else if q.contains("spiritual") || q.contains("retreat") || q.contains("monk") || q.contains("solitude") {
-            return 12
-        } else {
-            return 0 // Model should follow up
+
+        // 1st House – Identity, Self, Appearance
+        if q.contains("identity") || q.contains("myself") || q.contains("who am i") || q.contains("confidence") || q.contains("appearance") || q.contains("face") || q.contains("body") || q.contains("beginning") {
+            return 1
         }
+
+        // 2nd House – Money, Self-Worth, Values
+        if q.contains("money") || q.contains("income") || q.contains("finances") || q.contains("worth") || q.contains("value") || q.contains("resources") || q.contains("insecure")  {
+            return 2
+        }
+
+        // 3rd House – Communication, Learning, Siblings
+        if q.contains("communication") || q.contains("talking") || q.contains("writing") || q.contains("speaking") || q.contains("siblings") || q.contains("learning") || q.contains("thinking") || q.contains("news") || q.contains("shadow"){
+            return 3
+        }
+
+        // 4th House – Home, Family, Roots
+        if q.contains("home") || q.contains("family") || q.contains("father") || q.contains("roots") || q.contains("move") || q.contains("house") || q.contains("where i live") {
+            return 4
+        }
+
+        // 5th House – Creativity, Romance, Children, Fun
+        if q.contains("children") || q.contains("creativity") || q.contains("creative") || q.contains("fun") || q.contains("romance") || q.contains("dating") || q.contains("pleasure") || q.contains("love") {
+            return 5
+        }
+
+        // 6th House – Health, Routine, Service, Pets
+        if q.contains("illness") || q.contains("routine") || q.contains("work") || q.contains("diet") || q.contains("habits") || q.contains("service") || q.contains("pets") || q.contains("mentor") || q.contains("coach") || q.contains("sick") || q.contains("disease") {
+            return 6
+        }
+
+        // 7th House – Partnership, Marriage
+        if q.contains("relationship") || q.contains("partner") || q.contains("marriage") || q.contains("divorce") || q.contains("spouse") || q.contains("commitment") || q.contains("breakup"){
+            return 7
+        }
+
+        // 8th House – Sex, Death, Transformation, Shared Resources
+        if q.contains("death") || q.contains("trauma") || q.contains("therapy") || q.contains("healing") || q.contains("inheritance") || q.contains("shared") || q.contains("shadow") || q.contains("taboo") {
+            return 8
+        }
+
+        // 9th House – Philosophy, Travel, Higher Education
+        if q.contains("travel") || q.contains("truth") || q.contains("beliefs") || q.contains("college") || q.contains("university") || q.contains("spiritual study") || q.contains("abroad") || q.contains("long-distance") {
+            return 9
+        }
+
+        // 10th House – Career, Public Life, Legacy
+        if q.contains("career") || q.contains("job") || q.contains("mother") || q.contains("profession") || q.contains("work") || q.contains("retire") || q.contains("boss") || q.contains("legacy") || q.contains("public image") {
+            return 10
+        }
+
+        // 11th House – Friends, Community, Social Change
+        if q.contains("friends") || q.contains("community") || q.contains("network") || q.contains("social") || q.contains("mission") || q.contains("team") || q.contains("vision") {
+            return 11
+        }
+
+        // 12th House – Solitude, Mysticism, Karma, Addiction
+        if q.contains("spiritual") || q.contains("retreat") || q.contains("monk") || q.contains("solitude") || q.contains("karma") || q.contains("addiction") || q.contains("dreams") || q.contains("hidden") || q.contains("loss")  || q.contains("let go") || q.contains("grief") || q.contains("hospital") || q.contains("prison") {
+            return 12
+        }
+
+        // 🚨 No strong keyword match – let model decide
+        return 0
     }
 
     

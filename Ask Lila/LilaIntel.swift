@@ -194,7 +194,8 @@ func generateChartContextPrompt(from summary: ChartSummary) -> String {
         context += "🚀 Active Transits/Progressions to house \(summary.houseUserAskedAbout ?? 0): \(summary.houseTransitsAndProgressions.prefix(2))\n"
     }
 
-    return context
+    print("printed Chart Context: \(context)")  
+  return context
 }
 
 
