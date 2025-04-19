@@ -2,6 +2,8 @@ import Foundation
 import UIKit
 
 
+import Foundation
+import UIKit
 
 enum AskLilaCategory: String, CaseIterable {
     case selfInsight
@@ -10,29 +12,29 @@ enum AskLilaCategory: String, CaseIterable {
     case southNode
 }
 
-
 enum SubscriptionLevel {
-    case trial    // Non-subscribers with limited trial usage
-    case full     // Subscribers with full access
-    case premium  // Subscribers with premium access
+    case trial         // Free users with limited access
+    case full          // Subscribers with capped features
+    case premium       // Fully subscribed users
+    case introOffer    // Premium users in 3-day free trial
 }
 
 class AccessManager {
     static let shared = AccessManager()
-    
+
     private init() {
         // Initialize the first time - check if we need to set up the trial
         if currentLevel == .trial {
             TrialUsageManager.shared.initializeTrialIfNeeded()
         }
     }
-    
+
     private(set) var currentLevel: SubscriptionLevel = .trial
 
     func updateLevel(to level: SubscriptionLevel) {
         let oldLevel = currentLevel
         currentLevel = level
-        
+
         // Log the change for debugging
         if oldLevel != level {
             print("🔄 Subscription level changed: \(oldLevel) -> \(level)")
@@ -41,19 +43,19 @@ class AccessManager {
 
     func canUse(_ category: AskLilaCategory) -> Bool {
         switch currentLevel {
-        case .premium:
-            return true  // Premium subscribers have unlimited access to everything
+        case .premium, .introOffer:
+            return true  // Both premium and intro offer users have unlimited access
         case .full:
-            return FullAccessManager.shared.canUse(category)  // Full access with their limits
+            return FullAccessManager.shared.canUse(category)
         case .trial:
-            return TrialUsageManager.shared.canUse(category)  // Trial users with trial limits
+            return TrialUsageManager.shared.canUse(category)
         }
     }
 
     func increment(_ category: AskLilaCategory) {
         switch currentLevel {
-        case .premium:
-            break  // No need to track usage for premium
+        case .premium, .introOffer:
+            break  // No need to track usage for premium or intro offer
         case .full:
             FullAccessManager.shared.increment(category)
         case .trial:
@@ -63,7 +65,7 @@ class AccessManager {
 
     func remainingUses(for category: AskLilaCategory) -> Int? {
         switch currentLevel {
-        case .premium:
+        case .premium, .introOffer:
             return nil  // Unlimited
         case .full:
             return FullAccessManager.shared.remainingUses(for: category)
@@ -72,6 +74,7 @@ class AccessManager {
         }
     }
 }
+
 
 class FullAccessManager {
     static let shared = FullAccessManager()
@@ -197,6 +200,8 @@ class TrialUsageManager {
     func canUse(_ category: AskLilaCategory) -> Bool {
         // If in 24-hour sneak peek period, allow unlimited access
         if isInSneakPeekPeriod {
+            print("🧪 Checking trial status. In sneak peek: \(isInSneakPeekPeriod), Remaining uses: \(remainingUses(for: category))")
+
             return true
         }
         
@@ -240,83 +245,141 @@ extension Calendar {
         return (date >= startOfWeek && date < endOfWeek)
     }
 }
+import UIKit
+
+import UIKit
+
 class TrialBannerView: UIView {
+
+    enum BannerMode {
+        case sneakPeek(endDate: Date)
+        case introOffer
+        case full
+        case premium
+    }
+
+
+    var onDismiss: (() -> Void)?  // Called when user taps ✖️
+
     private let messageLabel = UILabel()
     private let remainingTimeLabel = UILabel()
+    private let dismissButton = UIButton(type: .system)
+
     private var timer: Timer?
     private var endDate: Date?
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupView()
     }
-    
+
     private func setupView() {
-        backgroundColor = UIColor(red: 0.47, green: 0.53, blue: 0.25, alpha: 0.9) // Lila olive green
+        backgroundColor = UIColor(red: 0.47, green: 0.53, blue: 0.25, alpha: 0.9)
         layer.cornerRadius = 8
-        
-        // Setup message label
-        messageLabel.text = "✨ 24-Hour Unlimited Sneak Peek ✨"
+
         messageLabel.font = UIFont.systemFont(ofSize: 14, weight: .bold)
         messageLabel.textColor = .white
-        messageLabel.textAlignment = .center
+        messageLabel.textAlignment = .left
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Setup remaining time label
-        remainingTimeLabel.text = "All features unlocked! Loading time remaining..."
+
         remainingTimeLabel.font = UIFont.systemFont(ofSize: 13)
         remainingTimeLabel.textColor = .white
-        remainingTimeLabel.textAlignment = .center
+        remainingTimeLabel.textAlignment = .left
         remainingTimeLabel.numberOfLines = 0
         remainingTimeLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
+        dismissButton.setTitle("✖️", for: .normal)
+        dismissButton.setTitleColor(.white, for: .normal)
+        dismissButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        dismissButton.translatesAutoresizingMaskIntoConstraints = false
+        dismissButton.addTarget(self, action: #selector(dismissTapped), for: .touchUpInside)
+
         addSubview(messageLabel)
         addSubview(remainingTimeLabel)
-        
+        addSubview(dismissButton)
+
         NSLayoutConstraint.activate([
+            dismissButton.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            dismissButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            dismissButton.widthAnchor.constraint(equalToConstant: 30),
+            dismissButton.heightAnchor.constraint(equalToConstant: 30),
+
             messageLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            
+            messageLabel.trailingAnchor.constraint(equalTo: dismissButton.leadingAnchor, constant: -8),
+
             remainingTimeLabel.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 4),
             remainingTimeLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
             remainingTimeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             remainingTimeLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
         ])
     }
-    
-    func startCountdown(endDate: Date) {
-        self.endDate = endDate
+
+    func configure(for mode: BannerMode) {
+        switch mode {
+        case .sneakPeek(let endDate):
+            messageLabel.text = "✨ 24-Hour Unlimited Sneak Peek ✨"
+            self.endDate = endDate
+            startCountdown()
+
+        case .introOffer:
+            messageLabel.text = "🎁 3-Day Premium Trial"
+            remainingTimeLabel.text = "You're enjoying a Premium preview. Unlimited access unlocked!"
+            stopCountdown()
+
+        case .full:
+            messageLabel.text = "🌿 Full Access Active"
+            remainingTimeLabel.text = "You’re currently subscribed to the Full plan. Upgrade anytime for unlimited access."
+            stopCountdown()
+
+        case .premium:
+            messageLabel.text = "💫 Premium Access Active"
+            remainingTimeLabel.text = "You're enjoying Premium features with unlimited access to all insights."
+            stopCountdown()
+        }
+    }
+
+    private func startCountdown() {
         updateCountdown()
-        
-        // Create a timer that fires every second
+        timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.updateCountdown()
         }
     }
-    
+
+    private func stopCountdown() {
+        timer?.invalidate()
+        timer = nil
+    }
+
     private func updateCountdown() {
         guard let endDate = endDate else { return }
-        
+
         let now = Date()
         if now >= endDate {
             remainingTimeLabel.text = "Sneak peek has ended. Subscribe for full access!"
-            timer?.invalidate()
+            stopCountdown()
             return
         }
-        
+
         let components = Calendar.current.dateComponents([.hour, .minute, .second], from: now, to: endDate)
         if let hours = components.hour, let minutes = components.minute, let seconds = components.second {
             remainingTimeLabel.text = String(format: "All features unlocked! %02d:%02d:%02d remaining", hours, minutes, seconds)
         }
     }
-    
+
+    @objc private func dismissTapped() {
+        stopCountdown()
+        self.removeFromSuperview()
+        onDismiss?()
+    }
+
     deinit {
-        timer?.invalidate()
+        stopCountdown()
     }
 }

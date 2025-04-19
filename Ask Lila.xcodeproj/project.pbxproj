@@ -38,6 +38,7 @@
 		396256D52D89F23E00ECCF68 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256C82D89F23E00ECCF68 /* AppCoordinator.swift */; };
 		396256D72D89F23E00ECCF68 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396256CF2D89F23E00ECCF68 /* AIService.swift */; };
 		396256D92D89F4E700ECCF68 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 396256D82D89F4E700ECCF68 /* Main.storyboard */; };
+		396EC0482DB347360099E8E5 /* UpgradePaywall.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EC0472DB347360099E8E5 /* UpgradePaywall.swift */; };
 		396EEFEF2D98CE4D000AED12 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 396EEFEE2D98CE4D000AED12 /* manager.swift */; };
 		396EEFF32D98FFA5000AED12 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 396EEFF22D98FFA5000AED12 /* FirebaseAuthCombine-Community */; };
 		39869A582DB1654900404967 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39869A572DB1654900404967 /* Config.swift */; };
@@ -132,6 +133,7 @@
 		396256C82D89F23E00ECCF68 /* AppCoordinator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		396256CF2D89F23E00ECCF68 /* AIService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
 		396256D82D89F4E700ECCF68 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		396EC0472DB347360099E8E5 /* UpgradePaywall.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpgradePaywall.swift; sourceTree = "<group>"; };
 		396EEFEE2D98CE4D000AED12 /* manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = manager.swift; sourceTree = "<group>"; };
 		39869A572DB1654900404967 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		3988525C2DAAE92D0000470F /* Tarot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tarot.swift; sourceTree = "<group>"; };
@@ -241,6 +243,7 @@
 				396256C72D89F23E00ECCF68 /* AboutVC.swift */,
 				391E96BB2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift */,
 				396256CF2D89F23E00ECCF68 /* AIService.swift */,
+				396EC0472DB347360099E8E5 /* UpgradePaywall.swift */,
 				3928F01E2DADD7450023BBD3 /* PaywallViewController.swift */,
 				3928F0162DAD992C0023BBD3 /* CostSummary.swift */,
 				391E96BD2DACBF0D00AAAC1D /* WishSpreadViewController.swift */,
@@ -485,6 +488,7 @@
 				39869A582DB1654900404967 /* Config.swift in Sources */,
 				39AF9E992D9BA77000765A38 /* LilaIntel.swift in Sources */,
 				396256B62D89F23300ECCF68 /* LoginVC.swift in Sources */,
+				396EC0482DB347360099E8E5 /* UpgradePaywall.swift in Sources */,
 				396256B82D89F23300ECCF68 /* Files.swift in Sources */,
 				39AF9E9B2D9BA7EA00765A38 /* GraphGraphs.swift in Sources */,
 				391E96BC2DACBA5200AAAC1D /* MagicCrossSpreadViewController.swift in Sources */,

@@ -40,6 +40,7 @@ class MyAgentChatController: UIViewController {
     private let jargonSlider = UISlider()
     private let jargonLabel = UILabel()
     private var currentJargonLevel: JargonLevel = .intermediate
+    private var hasDismissedTrialBanner = false
 
     private var trialBannerView: TrialBannerView?
     // UI Elements
@@ -92,9 +93,16 @@ class MyAgentChatController: UIViewController {
                 }
             }
         }
+
+
+
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        let expiredDate = Calendar.current.date(byAdding: .hour, value: -25, to: Date())!
+    //    UserDefaults.standard.set(expiredDate, forKey: "trialStartDate")
+
         setupKeyboardNotifications()
         setupUI()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -104,7 +112,7 @@ class MyAgentChatController: UIViewController {
           TrialUsageManager.shared.initializeTrialIfNeeded()
           
           // Setup trial banner if user is in trial mode
-          setupTrialBannerIfNeeded()
+        //  setupTrialBannerIfNeeded()
         startNewConversation()
         print(chartCake.natal.asteroids.compactMap {$0.formatted})
         print("💬 AgentChat loaded with chartCake: \(chartCake?.name ?? "nil")")
@@ -143,13 +151,28 @@ class MyAgentChatController: UIViewController {
         UserDefaults.standard.set(roundedValue, forKey: "user_jargon_level")
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        // 🧪 Simulate expired 24-hour trial
+        let expiredDate = Calendar.current.date(byAdding: .hour, value: -25, to: Date())!
+        UserDefaults.standard.set(expiredDate, forKey: "trialStartDate")
+        print("🧪 Trial start forced to: \(expiredDate)")
+
+        // Optional: hit the usage cap too
+        UserDefaults.standard.set(2, forKey: "trialUsage_relationship") // max = 2 for trial
+
+        updateTrialBanner()
+    }
+
+
     @objc private func sendMessage() {
         guard let text = messageInputField.text, !text.isEmpty else { return }
-        // Clear the input field IMMEDIATELY after sending
-           messageInputField.text = ""
 
-           // Reset the text field height
-           textViewDidChange(messageInputField)
+        // Clear the input field IMMEDIATELY after sending
+        messageInputField.text = ""
+        textViewDidChange(messageInputField)
+
         let category: AskLilaCategory
         if otherChart != nil {
             category = .relationship
@@ -159,55 +182,54 @@ class MyAgentChatController: UIViewController {
             category = .selfInsight
         }
 
-        func isRunningOnSimulator() -> Bool {
-            #if targetEnvironment(simulator)
-            return true
-            #else
-            return false
-            #endif
-        }
+//        func isRunningOnSimulator() -> Bool {
+//            #if targetEnvironment(simulator)
+//            return true
+//            #else
+//            return false
+//            #endif
+//        }
 
-        let isSimulator = isRunningOnSimulator()
+     //   let isSimulator = isRunningOnSimulator()
 
-        // Always verify subscription status before checking access
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             Task {
-                // Force check the subscription status to ensure we have latest info
                 await appDelegate.updateSubscriptionLevel()
 
-                // Continue on the main thread after subscription check
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
 
                     print("⚙️ Current subscription level: \(AccessManager.shared.currentLevel)")
 
-                    // Check access after subscription update
-                    if !isSimulator {
-                        if !AccessManager.shared.canUse(category) {
-                            Swift.print("🚫 No access for \(category) with level \(AccessManager.shared.currentLevel), showing paywall.")
-                            let paywall = PaywallViewController()
-                            let nav = UINavigationController(rootViewController: paywall)
-                            self.present(nav, animated: true)
-                            return
-                        } else {
-                            AccessManager.shared.increment(category)
-                        }
-                    }
+//                    if !isSimulator {
+//                        if !AccessManager.shared.canUse(category) {
+//                            Swift.print("🚫 No access for \(category) with level \(AccessManager.shared.currentLevel)")
+//
+//                            if AccessManager.shared.currentLevel == .full,
+//                               !FullAccessManager.shared.canUse(category) {
+//                                let upgradeVC = UpgradeToPremiumViewController()
+//                                let nav = UINavigationController(rootViewController: upgradeVC)
+//                                self.present(nav, animated: true)
+//                            } else {
+//                                let paywall = PaywallViewController()
+//                                let nav = UINavigationController(rootViewController: paywall)
+//                                self.present(nav, animated: true)
+//                            }
+//
+//                            return
+//                        } else {
+//                            AccessManager.shared.increment(category)
+//                        }
+//                    }
 
-
-                    // Add a thoughtful consultation message
                     let loadingMessage = self.contextAwareLoadingMessage()
                     self.messages.append((loadingMessage, false))
                     self.chatTableView.reloadData()
                     self.scrollToBottom()
-
-                    // Show the loading indicator
                     self.loadingIndicator.startAnimating()
 
-                    // Use transitChartCake if available, otherwise use the regular chart
                     let chartToUse = self.transitChartCake ?? self.chartCake
 
-                    // Determine reading type based on available context
                     let readingType: String
                     if self.otherChart != nil {
                         readingType = "SYNASTRY/RELATIONSHIP"
@@ -216,8 +238,12 @@ class MyAgentChatController: UIViewController {
                     } else {
                         readingType = "NATAL CHART"
                     }
-                    let transitText = self.buildFourNetProfileString(transitDate: chartToUse?.transitDate ?? Date(), chartCake: chartToUse!)
-                    // Log the reading type
+
+                    let transitText = self.buildFourNetProfileString(
+                        transitDate: chartToUse?.transitDate ?? Date(),
+                        chartCake: chartToUse!
+                    )
+
                     print("🔍 Performing \(readingType) reading")
                     var fullPrompt = ""
 
@@ -229,8 +255,8 @@ class MyAgentChatController: UIViewController {
                         """
                     }
 
-                    // Add time context information for transit readings
-                    if readingType == "TRANSIT & PROGRESSION", let timeContext = UserDefaults.standard.dictionary(forKey: "transitTimeContext") {
+                    if readingType == "TRANSIT & PROGRESSION",
+                       let timeContext = UserDefaults.standard.dictionary(forKey: "transitTimeContext") {
                         let isPast = timeContext["isPast"] as? Bool ?? false
                         let isFuture = timeContext["isFuture"] as? Bool ?? false
                         let yearsApart = timeContext["yearsApart"] as? Int ?? 0
@@ -241,7 +267,7 @@ class MyAgentChatController: UIViewController {
                         ⏳ TIME CONTEXT:
                         - \(isPast ? "Past" : isFuture ? "Future" : "Current") date
                         - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
-                        
+
                         """
                     }
 
@@ -255,8 +281,6 @@ class MyAgentChatController: UIViewController {
                      "Use full astrological terminology. User is fluent.")
                     """
 
-
-                    // Format the prompt to be more explicit about the context
                     let formattedPrompt = """
                     READING TYPE: \(readingType)
 
@@ -267,27 +291,21 @@ class MyAgentChatController: UIViewController {
                     USER QUESTION: \(text)
                     """
 
-                    // Track message sent event with Google Analytics
                     Analytics.logEvent("regular_message_sent", parameters: [
                         "reading_type": readingType,
                         "message_length": text.count,
                         "has_context": self.chartSummaryContext != nil
                     ])
-                    // Send to Lila agent
 
-                        LilaAgentManager.shared.sendMessageToAgent(
-                            prompt: formattedPrompt,
-                            userChart: chartToUse,
-                            otherChart: self.otherChart
-                        // 👈 passed here
-                        ) { [weak self] response in
+                    LilaAgentManager.shared.sendMessageToAgent(
+                        prompt: formattedPrompt,
+                        userChart: chartToUse,
+                        otherChart: self.otherChart
+                    ) { [weak self] response in
                         guard let self = self else { return }
 
                         DispatchQueue.main.async {
-                            // Stop the loading indicator
                             self.loadingIndicator.stopAnimating()
-
-                            // Remove the loading message before adding the real response
                             self.messages.removeLast()
                             self.chatTableView.reloadData()
 
@@ -305,54 +323,93 @@ class MyAgentChatController: UIViewController {
                 }
             }
         } else {
-            // Fallback if unable to get app delegate (shouldn't happen)
-            if !isSimulator {
-                if !AccessManager.shared.canUse(category) {
-                    Swift.print("🚫 No access, showing paywall.")
-                    let paywall = PaywallViewController()
-                    let nav = UINavigationController(rootViewController: paywall)
-                    present(nav, animated: true)
-                    return
-                } else {
-                    AccessManager.shared.increment(category)
-                }
-            }
-
+//            if !isSimulator {
+//                if !AccessManager.shared.canUse(category) {
+//                    Swift.print("🚫 No access, showing appropriate paywall fallback.")
+//
+//                    if AccessManager.shared.currentLevel == .full,
+//                       !FullAccessManager.shared.canUse(category) {
+//                        let upgradeVC = UpgradeToPremiumViewController()
+//                        let nav = UINavigationController(rootViewController: upgradeVC)
+//                        present(nav, animated: true)
+//                    } else {
+//                        let paywall = PaywallViewController()
+//                        let nav = UINavigationController(rootViewController: paywall)
+//                        present(nav, animated: true)
+//                    }
+//
+//                    return
+//                } else {
+//                    AccessManager.shared.increment(category)
+//                }
+//            }
         }
     }
 
+
     private func setupTrialBannerIfNeeded() {
-           // Only show banner for trial users
-           if AccessManager.shared.currentLevel == .trial {
-               let banner = TrialBannerView()
-               banner.translatesAutoresizingMaskIntoConstraints = false
-               view.addSubview(banner)
-               
-               // Position banner at the top of the view, below the navigation bar
-               NSLayoutConstraint.activate([
-                   banner.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-                   banner.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-                   banner.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-               ])
-               
-               // Start countdown if we have an end date
-               if let endDate = TrialUsageManager.shared.trialEndDate {
-                   banner.startCountdown(endDate: endDate)
-               }
-               
-               trialBannerView = banner
-               
-               // Adjust table view content inset to account for banner
-               let bannerHeight = 70.0 // Approximate height of banner
-               chatTableView.contentInset = UIEdgeInsets(top: bannerHeight, left: 0, bottom: 0, right: 0)
-           } else {
-               // Remove banner if it exists and user is no longer in trial
-               trialBannerView?.removeFromSuperview()
-               trialBannerView = nil
-               chatTableView.contentInset = UIEdgeInsets.zero
-           }
-       }
-       
+        print("🧭 Checking banner for subscription level: \(AccessManager.shared.currentLevel)")
+
+        // Respect session-level dismiss
+        if hasDismissedTrialBanner {
+            print("🚫 Banner dismissed earlier this session.")
+            trialBannerView?.removeFromSuperview()
+            trialBannerView = nil
+            chatTableView.contentInset = .zero
+            return
+        }
+
+        // Remove any existing banner before adding new one
+        trialBannerView?.removeFromSuperview()
+        trialBannerView = nil
+        chatTableView.contentInset = .zero
+
+        let banner = TrialBannerView()
+        banner.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(banner)
+
+        NSLayoutConstraint.activate([
+            banner.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            banner.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            banner.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+        ])
+
+        banner.onDismiss = {
+            self.hasDismissedTrialBanner = true
+            self.trialBannerView = nil
+            self.chatTableView.contentInset = .zero
+        }
+
+        switch AccessManager.shared.currentLevel {
+        case .introOffer:
+            print("🎁 Showing Intro Offer Banner")
+            banner.configure(for: .introOffer)
+
+        case .trial:
+            if let endDate = TrialUsageManager.shared.trialEndDate {
+                print("⏳ Showing Sneak Peek Banner")
+                banner.configure(for: .sneakPeek(endDate: endDate))
+            } else {
+                print("❌ Trial mode active but no trial end date")
+                return
+            }
+
+        case .full:
+            print("🌿 Showing Full Access Banner")
+            banner.configure(for: .full)
+
+        case .premium:
+            print("💫 Showing Premium Access Banner")
+            banner.configure(for: .premium)
+        }
+
+        trialBannerView = banner
+        chatTableView.contentInset = UIEdgeInsets(top: 70, left: 0, bottom: 0, right: 0)
+    }
+
+
+
+ 
        // Add this method to update the banner visibility when subscription status changes
        func updateTrialBanner() {
            setupTrialBannerIfNeeded()
