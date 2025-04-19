@@ -167,8 +167,12 @@ class ForecastViewController: UIViewController {
         }
         
         viewModel.didUpdateHoroscope = { [weak self] in
-            self?.tableView.reloadData()
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+                self?.scrollToBottom()
+            }
         }
+
         
         viewModel.didChangeLoadingState = { [weak self] isLoading in
             if isLoading {
@@ -360,31 +364,37 @@ class ForecastViewController: UIViewController {
     }
     
     class InterpretationCell: UITableViewCell {
-        let interpretationLabel = UILabel()
-        
+        let textView = UITextView()
+
         override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
             super.init(style: .default, reuseIdentifier: reuseIdentifier)
-            
-            interpretationLabel.numberOfLines = 0
-            interpretationLabel.font = UIFont.systemFont(ofSize: 16)
-            interpretationLabel.textColor = .label
-            interpretationLabel.translatesAutoresizingMaskIntoConstraints = false
-            
-            contentView.addSubview(interpretationLabel)
-            
+
+            // Use UITextView instead of UILabel for better text rendering
+            textView.isEditable = false
+            textView.isScrollEnabled = false
+            textView.backgroundColor = .clear
+            textView.font = UIFont.systemFont(ofSize: 16)
+            textView.textContainerInset = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
+            textView.translatesAutoresizingMaskIntoConstraints = false
+
+            contentView.addSubview(textView)
+
             NSLayoutConstraint.activate([
-                interpretationLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-                interpretationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-                interpretationLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-                interpretationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+                textView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+                textView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+                textView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+                textView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
             ])
         }
-        
+
         required init?(coder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
+
+        func configure(with text: String) {
+            textView.text = text
+        }
     }
-    
     class MessageCell: UITableViewCell {
         let messageLabel = UILabel()
         let bubbleView = UIView()
@@ -478,10 +488,19 @@ extension ForecastViewController: UITableViewDataSource {
             return cell
             
         case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "InterpretationCell", for: indexPath) as! InterpretationCell
-            cell.interpretationLabel.text = viewModel.horoscope?.interpretation
-            return cell
-            
+              let cell = tableView.dequeueReusableCell(withIdentifier: "InterpretationCell", for: indexPath) as! InterpretationCell
+
+              if let interpretation = viewModel.horoscope?.interpretation {
+                  print("🔍 Setting interpretation to cell: \(interpretation.prefix(50))...")
+                  cell.configure(with: interpretation)
+              } else {
+                  print("⚠️ No interpretation available")
+                  cell.configure(with: "Interpretation not available")
+              }
+
+              return cell
+
+
         case 2:
             let cell = tableView.dequeueReusableCell(withIdentifier: "MessageCell", for: indexPath) as! MessageCell
             let (message, isUser) = messages[indexPath.row]
@@ -608,11 +627,12 @@ class TransitViewModel: ObservableObject {
         // Send to AI for horoscope generation
         fetchPersonalizedHoroscope(for: category, elements: userElements, transits: transitDescriptions) { [weak self] result in
             guard let self = self else { return }
-            
+
             DispatchQueue.main.async {
                 switch result {
                 case .success(let interpretation):
                     self.horoscope = Horoscope(category: category, interpretation: interpretation)
+                    print("✅ Received horoscope interpretation: \(interpretation.prefix(100))...") // Debug log
                     self.didUpdateHoroscope?()
                 case .failure(let error):
                     print("Error fetching horoscope: \(error.localizedDescription)")
@@ -621,7 +641,6 @@ class TransitViewModel: ObservableObject {
             }
         }
     }
-
     // MARK: - Progression and Solar Arc Methods
     
     /// Fetch progressions for a specified time period

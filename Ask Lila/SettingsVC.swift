@@ -30,6 +30,8 @@ class SettingsMenuViewController: UIViewController, UITableViewDelegate, UITable
             // Clear and build in your desired order
             self.options = [
                 ("📝 Edit Birth Chart", #selector(self.openBirthChartEditor)),
+                ("🗣 Language Level", #selector(self.adjustJargonLevel)),
+
                 ("💬 Send Feedback", #selector(self.sendFeedback)),
                 ("📤 Share AskLila", #selector(self.shareAskLila)),
                
@@ -145,7 +147,36 @@ class SettingsMenuViewController: UIViewController, UITableViewDelegate, UITable
                 print("✅ Edit chart screen presented successfully")
             }
         }
-    
+
+    @objc private func adjustJargonLevel() {
+        let alert = UIAlertController(title: "Language Preference", message: "Choose your preferred astrology language style.", preferredStyle: .actionSheet)
+
+        let levels: [(title: String, level: JargonLevel)] = [
+            ("🧘‍♀️ Plain Language", .beginner),
+            ("🔮 Some Jargon", .intermediate),
+            ("🧠 Astro Speak", .advanced)
+        ]
+
+        for (title, level) in levels {
+            alert.addAction(UIAlertAction(title: title, style: .default) { _ in
+                UserDefaults.standard.set(level.rawValue, forKey: "user_jargon_level")
+                let confirmation = UIAlertController(title: "Updated", message: "Language level set to \(level.label)", preferredStyle: .alert)
+                confirmation.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(confirmation, animated: true)
+            })
+        }
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = self.view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+        }
+
+        present(alert, animated: true)
+    }
+
+
     @objc private func viewPaywall() {
         print("🛠️ Edit tapped — attempting to call SceneDelegate...")
 

@@ -769,7 +769,6 @@ class LilaAgentManager {
         userChart: ChartCake?,
         otherChart: ChartCake? = nil,
         transitsContext: String? = nil,
-        jargonLevel: JargonLevel = .intermediate,
         completion: @escaping (String?) -> Void
     ) {
         guard let userChart = userChart else {
@@ -779,7 +778,7 @@ class LilaAgentManager {
 
         let userName = userChart.name ?? "User"
 
-        // ✅ Detect reading type using reliable property
+        // ✅ Determine reading type
         let isTransit = userChart.transits.transitDate != nil
         let readingType: ReadingType = otherChart != nil
             ? .synastry
@@ -787,18 +786,21 @@ class LilaAgentManager {
 
         print("🔍 Performing \(readingType.rawValue) reading for \(userName)")
 
-        // ✅ Add system instructions based on context
+        // ✅ Read jargon level from UserDefaults
+        let rawJargonLevel = UserDefaults.standard.integer(forKey: "user_jargon_level")
+        let currentJargonLevel = JargonLevel(rawValue: rawJargonLevel) ?? .intermediate
+
+        // ✅ Get system instructions
         var systemInstructions = getSystemInstructions(
             chartCake: userChart,
             otherChart: otherChart,
             transitDate: userChart.transits.transitDate,
-            readingType: readingType // ✅ Pass in enum
+            readingType: readingType
         )
 
-
-        // ✅ Add language tone based on jargon level
+        // ✅ Add language tone
         let languageGuide: String = {
-            switch jargonLevel {
+            switch currentJargonLevel {
             case .beginner: return "Use natural language. Avoid astrology jargon unless necessary."
             case .intermediate: return "Use gentle astrology language and define terms when needed."
             case .advanced: return "Use technical astrological terminology freely."
@@ -829,7 +831,7 @@ class LilaAgentManager {
 
         print("🧾 FULL PROMPT:\n\(fullPrompt)")
 
-        // ✅ Route to current AI service
+        // ✅ Route to AI service
         let currentService = AIServiceManager.shared.currentService
         currentService.generateResponse(
             prompt: fullPrompt,
@@ -860,6 +862,7 @@ class LilaAgentManager {
             }
         }
     }
+
 
     func toneAdjustedResponse(
         userInput: String,

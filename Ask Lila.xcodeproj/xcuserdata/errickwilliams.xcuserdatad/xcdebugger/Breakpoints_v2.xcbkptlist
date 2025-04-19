@@ -14,8 +14,8 @@
             filePath = "Ask Lila/AskLilaView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1303"
-            endingLineNumber = "1303"
+            startingLineNumber = "1278"
+            endingLineNumber = "1278"
             landmarkName = "createTransitChart(for:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -33,22 +33,6 @@
             startingLineNumber = "146"
             endingLineNumber = "146"
             landmarkName = "sendMessage()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "8B352DD7-3C64-4410-8F65-EC41007BD49D"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Ask Lila/manager.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "809"
-            endingLineNumber = "809"
-            landmarkName = "sendMessageToAgent(prompt:userChart:otherChart:transitsContext:jargonLevel:completion:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

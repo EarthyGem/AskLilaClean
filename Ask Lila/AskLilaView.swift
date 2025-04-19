@@ -145,7 +145,11 @@ class MyAgentChatController: UIViewController {
 
     @objc private func sendMessage() {
         guard let text = messageInputField.text, !text.isEmpty else { return }
+        // Clear the input field IMMEDIATELY after sending
+           messageInputField.text = ""
 
+           // Reset the text field height
+           textViewDidChange(messageInputField)
         let category: AskLilaCategory
         if otherChart != nil {
             category = .relationship
@@ -170,13 +174,13 @@ class MyAgentChatController: UIViewController {
             Task {
                 // Force check the subscription status to ensure we have latest info
                 await appDelegate.updateSubscriptionLevel()
-                
+
                 // Continue on the main thread after subscription check
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
-                    
+
                     print("⚙️ Current subscription level: \(AccessManager.shared.currentLevel)")
-                    
+
                     // Check access after subscription update
                     if !isSimulator {
                         if !AccessManager.shared.canUse(category) {
@@ -189,7 +193,7 @@ class MyAgentChatController: UIViewController {
                             AccessManager.shared.increment(category)
                         }
                     }
-                    
+
 
                     // Add a thoughtful consultation message
                     let loadingMessage = self.contextAwareLoadingMessage()
@@ -270,13 +274,12 @@ class MyAgentChatController: UIViewController {
                         "has_context": self.chartSummaryContext != nil
                     ])
                     // Send to Lila agent
-                
+
                         LilaAgentManager.shared.sendMessageToAgent(
                             prompt: formattedPrompt,
                             userChart: chartToUse,
-                            otherChart: self.otherChart,
-                            transitsContext: transitText,
-                            jargonLevel: currentJargonLevel  // 👈 passed here
+                            otherChart: self.otherChart
+                        // 👈 passed here
                         ) { [weak self] response in
                         guard let self = self else { return }
 
@@ -317,7 +320,7 @@ class MyAgentChatController: UIViewController {
 
         }
     }
-    
+
     private func setupTrialBannerIfNeeded() {
            // Only show banner for trial users
            if AccessManager.shared.currentLevel == .trial {
@@ -404,7 +407,7 @@ class MyAgentChatController: UIViewController {
 
         // 🌼 Final nav layout
         navigationItem.rightBarButtonItems = [addPartnerButton, selectDateButton, selectAIServiceButton, statsButton]
-        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton ]
+        navigationItem.leftBarButtonItems = [editChartButton,showStoryButton, historyButton, showForecastButton ]
 
         updateAIServiceIndicator()
     }
@@ -445,7 +448,6 @@ class MyAgentChatController: UIViewController {
         inputContainerView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(inputContainerView)
 
-        // Chat table view
         chatTableView.dataSource = self
         chatTableView.delegate = self
         chatTableView.separatorStyle = .none
@@ -454,7 +456,7 @@ class MyAgentChatController: UIViewController {
         chatTableView.estimatedRowHeight = 50
         view.addSubview(chatTableView)
 
-        // Message input field
+        // Set up message input field
         messageInputField.isScrollEnabled = false
         messageInputField.font = UIFont.systemFont(ofSize: 16)
         messageInputField.layer.borderColor = UIColor.lightGray.cgColor
@@ -464,7 +466,6 @@ class MyAgentChatController: UIViewController {
         messageInputField.delegate = self
         inputContainerView.addSubview(messageInputField)
 
-        // Send button
         sendButton.setTitle("Send", for: .normal)
         sendButton.backgroundColor = .systemBlue
         sendButton.layer.cornerRadius = 5
@@ -472,71 +473,45 @@ class MyAgentChatController: UIViewController {
         sendButton.translatesAutoresizingMaskIntoConstraints = false
         inputContainerView.addSubview(sendButton)
 
-        // Loading indicator
         view.addSubview(loadingIndicator)
 
-        // 🧠 Jargon slider + label
-        jargonSlider.minimumValue = 0
-        jargonSlider.maximumValue = 2
-        jargonSlider.translatesAutoresizingMaskIntoConstraints = false
-        jargonSlider.addTarget(self, action: #selector(jargonSliderChanged(_:)), for: .valueChanged)
-        let savedJargon = UserDefaults.standard.integer(forKey: "user_jargon_level")
-        currentJargonLevel = JargonLevel(rawValue: savedJargon) ?? .intermediate
-        jargonSlider.value = Float(currentJargonLevel.rawValue)
-        view.addSubview(jargonSlider)
-
-        jargonLabel.font = UIFont.systemFont(ofSize: 12)
-        jargonLabel.textAlignment = .center
-        jargonLabel.text = "Language: \(currentJargonLevel.label)"
-        jargonLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(jargonLabel)
-
-        // Layout
         NSLayoutConstraint.activate([
-            // Input container
+            // Input container view constraints
             inputContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             inputContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             inputContainerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             inputContainerView.heightAnchor.constraint(equalToConstant: 60),
 
-            // Chat table
+            // Chat table view constraints
             chatTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             chatTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             chatTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            chatTableView.bottomAnchor.constraint(equalTo: jargonSlider.topAnchor, constant: -16),
+            chatTableView.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor),
 
-            // Message input
+            // Message input field constraints
             messageInputField.leadingAnchor.constraint(equalTo: inputContainerView.leadingAnchor, constant: 16),
             messageInputField.trailingAnchor.constraint(equalTo: sendButton.leadingAnchor, constant: -10),
             messageInputField.centerYAnchor.constraint(equalTo: inputContainerView.centerYAnchor),
             messageInputField.heightAnchor.constraint(equalToConstant: 40),
 
-            // Send button
+            // Send button constraints
             sendButton.trailingAnchor.constraint(equalTo: inputContainerView.trailingAnchor, constant: -16),
             sendButton.centerYAnchor.constraint(equalTo: inputContainerView.centerYAnchor),
             sendButton.widthAnchor.constraint(equalToConstant: 80),
             sendButton.heightAnchor.constraint(equalToConstant: 40),
 
-            // Loading spinner
+            // Loading indicator constraints
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loadingIndicator.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: -10),
-
-            // Jargon slider + label
-            jargonSlider.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: -40),
-            jargonSlider.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            jargonSlider.widthAnchor.constraint(equalToConstant: 120),
-
-            jargonLabel.bottomAnchor.constraint(equalTo: jargonSlider.topAnchor, constant: -4),
-            jargonLabel.centerXAnchor.constraint(equalTo: jargonSlider.centerXAnchor)
+            loadingIndicator.bottomAnchor.constraint(equalTo: inputContainerView.topAnchor, constant: -10)
         ])
 
-        // Dismiss keyboard on tap
+        // Add tap gesture recognizer to dismiss keyboard when tapping outside the text field
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         chatTableView.addGestureRecognizer(tapGesture)
     }
-
     
+
     @objc private func toggleAgentMode(_ sender: UISwitch) {
         useSuperchargedAgent = sender.isOn
         let mode = useSuperchargedAgent ? "Supercharged" : "Classic"
@@ -1357,17 +1332,6 @@ print("Transit Date: \(transitChartCake?.transits.transitDate)")
         // Create hidden context for the AI model with detailed transit/progression information
         guard let transitChart = transitChartCake else { return }
 
-        // Get the transit and progression data from your functions
-        let netOneData = chartCake.netOne()
-        let netTwoData = chartCake.netTwo()
-        let netThreeData = chartCake.netThree()
-        let netFourData = chartCake.netFour()
-
-        print("🔮 Transit data for context:")
-        print("Net One: \(netOneData)")
-        print("Net Two: \(netTwoData)")
-        print("Net Three: \(netThreeData)")
-        print("Net Four: \(netFourData)")
 
         // Create internal context with transit and progression data
         let internalContext = """
@@ -1377,12 +1341,7 @@ print("Transit Date: \(transitChartCake?.transits.transitDate)")
         - \(isPast ? "Past" : isFuture ? "Future" : "Present") date
         - \(yearsApart > 0 ? "\(yearsApart) years" : monthsApart > 0 ? "\(monthsApart) months" : "\(daysApart) days") \(isPast ? "ago" : "from now")
         
-        TRANSIT DATA for \(formattedDate):
-        - Most important activations: \(netOneData)
-        - Supporting activations: \(netTwoData)
-        - Slightly less important: \(netThreeData)
-        - Daily triggers: \(netFourData)
-        - This person is \(age). Please make recommendations age-appropriate.
+
 
 """
 
@@ -1586,19 +1545,35 @@ extension MyAgentChatController: UITableViewDelegate {
 // MARK: - UITextViewDelegate
 extension MyAgentChatController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        let maxHeight: CGFloat = 120
-        let size = CGSize(width: textView.frame.width, height: .infinity)
-        let estimatedSize = textView.sizeThatFits(size)
+        // Calculate the size that fits the content
+        let fixedWidth = textView.frame.width
+        let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
 
-        textView.isScrollEnabled = estimatedSize.height > maxHeight
-        textView.constraints.forEach { constraint in
-            if constraint.firstAttribute == .height {
-                constraint.constant = min(estimatedSize.height, maxHeight)
+        // Define minimum and maximum heights
+        let minHeight: CGFloat = 40
+        let maxHeight: CGFloat = 120
+
+        // Calculate new height within bounds
+        let newHeight = min(max(newSize.height, minHeight), maxHeight)
+
+        // Only update if height changed
+        if textView.frame.height != newHeight {
+            // Find the height constraint
+            textView.constraints.forEach { constraint in
+                if constraint.firstAttribute == .height {
+                    // Animate the height change
+                    UIView.animate(withDuration: 0.1) {
+                        constraint.constant = newHeight
+                        self.view.layoutIfNeeded()
+                    }
+                }
             }
         }
+
+        // Enable/disable scrolling based on content size
+        textView.isScrollEnabled = newSize.height > maxHeight
     }
 }
-
 // MARK: - PartnerSelectionDelegate
 extension MyAgentChatController: PartnerSelectionDelegate {
     func didSelectPartner(chartCake: ChartCake) {
@@ -1631,6 +1606,8 @@ extension MyAgentChatController {
 
   
 }
+
+
 // MARK: - AIServiceDelegate
 extension MyAgentChatController: AIServiceDelegate {
     func didSelectAIService() {
