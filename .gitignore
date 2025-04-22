@@ -1,0 +1,9 @@
+.DS_Store
+Build/
+/.build
+/Packages
+*/project.xcworkspace/*
+*/xcschemes/*
+*/xcuserdata/*
+Config.swift
+AskLila/Config.swift
