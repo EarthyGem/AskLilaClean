@@ -257,63 +257,84 @@ extension AppDelegate {
         }
     }
     
-    //    @MainActor
-    //    func updateSubscriptionLevel() async {
-    //        var hasActiveSubscription = false
-    //
-    //        for await result in Transaction.currentEntitlements {
-    //            guard case .verified(let transaction) = result else {
-    //                print("⚠️ Non-verified transaction found")
-    //                continue
-    //            }
-    //
-    //            print("✅ Verified transaction: \(transaction.productID)")
-    //
-    //            switch transaction.productID {
-    //            case "asklila.fullAccess":
-    //                AccessManager.shared.updateLevel(to: .full)
-    //                hasActiveSubscription = true
-    //                return
-    //
-    //            case "asklila.premiumAccess":
-    //                if transaction.offerType == .introductory {
-    //                    AccessManager.shared.updateLevel(to: .introOffer)
-    //                } else {
-    //                    AccessManager.shared.updateLevel(to: .premium)
-    //                }
-    //                hasActiveSubscription = true
-    //                return
-    //
-    //            default:
-    //                print("⚠️ Unknown product ID: \(transaction.productID)")
-    //            }
-    //        }
-    //
-    //        if !hasActiveSubscription {
-    //            AccessManager.shared.updateLevel(to: .trial)
-    //        }
-    //
-    //        print("🔑 Current subscription level: \(AccessManager.shared.currentLevel)")
-    //    }
-    //}
-    
     
     @MainActor
     func updateSubscriptionLevel() async {
-        // 🔧 Test One Type at a Time
+        var mostPrivilegedLevel: SubscriptionLevel?
         
-        let simulatedLevel: SubscriptionLevel = .trial // ← change this to .trial, .full, .premium
-
-        AccessManager.shared.updateLevel(to: simulatedLevel)
-        print("🧪 Forcing subscription level: \(simulatedLevel)")
+        // Check for paid subscriptions first
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result else {
+                print("⚠️ Non-verified transaction found")
+                continue
+            }
+            
+            print("✅ Verified transaction: \(transaction.productID)")
+            
+            switch transaction.productID {
+            case "asklila.premiumAccess":
+                if transaction.offerType == .introductory {
+                    mostPrivilegedLevel = .introOffer
+                } else {
+                    mostPrivilegedLevel = .premium
+                }
+                
+            case "asklila.fullAccess":
+                // Only override if no more privileged subscription was found
+                if mostPrivilegedLevel == nil {
+                    mostPrivilegedLevel = .full
+                }
+                
+            default:
+                print("⚠️ Unknown product ID: \(transaction.productID)")
+            }
+        }
         
-        // ✅ If your VC is active, update the banner UI immediately
+        if let level = mostPrivilegedLevel {
+            AccessManager.shared.updateLevel(to: level)
+        } else {
+            // Get accurate trial status
+            let trialManager = TrialUsageManager.shared
+            let isInSneakPeek = trialManager.isInSneakPeekPeriod
+            let hasRemainingUses = trialManager.hasAnyRemainingUses()
+            
+            // Set accurate subscription level
+            if isInSneakPeek || hasRemainingUses {
+                AccessManager.shared.updateLevel(to: .trial)
+            } else {
+                AccessManager.shared.updateLevel(to: .trialExpired)
+            }
+        }
+        
+        print("🔑 Final subscription level: \(AccessManager.shared.currentLevel)")
+        
+        // Update the banner if view controller is active
         if let window = UIApplication.shared.windows.first,
            let rootVC = window.rootViewController as? UINavigationController,
            let topVC = rootVC.topViewController as? MyAgentChatController {
             topVC.updateTrialBanner()
         }
         
-        print("🔑 Final subscription level: \(AccessManager.shared.currentLevel)")
     }
+    
+    //    //    @MainActor
+    //       func updateSubscriptionLevel() async {
+    //            // 🔧 Test One Type at a Time
+    //
+    //           let simulatedLevel: SubscriptionLevel = .trialExpired // ← change this to .trial, .full, .premium
+    //
+    //            AccessManager.shared.updateLevel(to: simulatedLevel)
+    //            print("🧪 Forcing subscription level: \(simulatedLevel)")
+    //
+    //            // ✅ If your VC is active, update the banner UI immediately
+    //            if let window = UIApplication.shared.windows.first,
+    //               let rootVC = window.rootViewController as? UINavigationController,
+    //               let topVC = rootVC.topViewController as? MyAgentChatController {
+    //                topVC.updateTrialBanner()
+    //            }
+    //
+    //            print("🔑 Final subscription level: \(AccessManager.shared.currentLevel)")
+    //        }
+    //    }
+    
 }

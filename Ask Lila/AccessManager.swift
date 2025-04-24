@@ -13,17 +13,18 @@ enum AskLilaCategory: String, CaseIterable {
 }
 
 enum SubscriptionLevel {
-    case trial         // Free users with limited access
-    case full          // Subscribers with capped features
-    case premium       // Fully subscribed users
-    case introOffer    // Premium users in 3-day free trial
+    case trial             // Trial user (active sneak peek or still has uses)
+    case trialExpired      // Trial user, but no access left
+    case full
+    case premium
+    case introOffer
 }
+
 
 class AccessManager {
     static let shared = AccessManager()
 
     private init() {
-        // Initialize the first time - check if we need to set up the trial
         if currentLevel == .trial {
             TrialUsageManager.shared.initializeTrialIfNeeded()
         }
@@ -35,7 +36,6 @@ class AccessManager {
         let oldLevel = currentLevel
         currentLevel = level
 
-        // Log the change for debugging
         if oldLevel != level {
             print("🔄 Subscription level changed: \(oldLevel) -> \(level)")
         }
@@ -44,18 +44,20 @@ class AccessManager {
     func canUse(_ category: AskLilaCategory) -> Bool {
         switch currentLevel {
         case .premium, .introOffer:
-            return true  // Both premium and intro offer users have unlimited access
+            return true  // Unlimited access
         case .full:
             return FullAccessManager.shared.canUse(category)
         case .trial:
             return TrialUsageManager.shared.canUse(category)
+        case .trialExpired:
+            return false  // 🚫 No access
         }
     }
 
     func increment(_ category: AskLilaCategory) {
         switch currentLevel {
-        case .premium, .introOffer:
-            break  // No need to track usage for premium or intro offer
+        case .premium, .introOffer, .trialExpired:
+            break  // No tracking needed or access denied
         case .full:
             FullAccessManager.shared.increment(category)
         case .trial:
@@ -65,8 +67,8 @@ class AccessManager {
 
     func remainingUses(for category: AskLilaCategory) -> Int? {
         switch currentLevel {
-        case .premium, .introOffer:
-            return nil  // Unlimited
+        case .premium, .introOffer, .trialExpired:
+            return nil  // Not relevant or no access
         case .full:
             return FullAccessManager.shared.remainingUses(for: category)
         case .trial:
@@ -74,7 +76,6 @@ class AccessManager {
         }
     }
 }
-
 
 class FullAccessManager {
     static let shared = FullAccessManager()
@@ -170,6 +171,12 @@ class TrialUsageManager {
     var isInSneakPeekPeriod: Bool {
         guard let startDate = trialStartDate, let endDate = trialEndDate else { return false }
         let now = Date()
+
+        print("🧪 Trial Check — Now: \(now)")
+        print("📅 Start: \(startDate)")
+        print("📅 End: \(endDate)")
+        print("🔍 In Sneak Peek? \(now >= startDate && now < endDate)")
+
         return now >= startDate && now < endDate
     }
 
@@ -192,11 +199,28 @@ class TrialUsageManager {
         defaults.set(Date(), forKey: lastResetKey)
     }
 
+    // Modified version of isTrialActive that's more robust
     func isTrialActive() -> Bool {
         initializeTrialIfNeeded()
-        return isInSneakPeekPeriod || remainingUses(for: .selfInsight) > 0
+        
+        // First check if in sneak peek period
+        if isInSneakPeekPeriod {
+            print("✅ Trial active: User is in sneak peek period")
+            return true
+        }
+        
+        // If not in sneak peek, check if any categories still have remaining uses
+        for category in AskLilaCategory.allCases {
+            if remainingUses(for: category) > 0 {
+                print("✅ Trial active: User has remaining uses for \(category.rawValue)")
+                return true
+            }
+        }
+        
+        // If reached here, trial is not active
+        print("🚫 Trial inactive: Sneak peek ended and no remaining uses")
+        return false
     }
-
     func canUse(_ category: AskLilaCategory) -> Bool {
         // If in 24-hour sneak peek period, allow unlimited access
         if isInSneakPeekPeriod {
@@ -247,13 +271,12 @@ extension Calendar {
 }
 import UIKit
 
-import UIKit
-
 class TrialBannerView: UIView {
 
     enum BannerMode {
         case sneakPeek(endDate: Date)
         case introOffer
+        case trialExpired
         case full
         case premium
     }
@@ -327,6 +350,11 @@ class TrialBannerView: UIView {
             self.endDate = endDate
             startCountdown()
 
+        case .trialExpired:
+            messageLabel.text = "🚪 Trial Ended"
+            remainingTimeLabel.text = "Your free trial has ended. Subscribe for full access."
+
+
         case .introOffer:
             messageLabel.text = "🎁 3-Day Premium Trial"
             remainingTimeLabel.text = "You're enjoying a Premium preview. Unlimited access unlocked!"
@@ -381,5 +409,104 @@ class TrialBannerView: UIView {
 
     deinit {
         stopCountdown()
+    }
+}
+extension TrialUsageManager {
+    
+    // Add a new method to forcefully expire the trial
+    func forceExpireTrial() {
+        // 1. Set the trial start date to a time well in the past
+        let expiredStartDate = Calendar.current.date(byAdding: .hour, value: -25, to: Date())!
+        trialStartDate = expiredStartDate
+        
+        // 2. Set all usage counters to their maximum values
+        for category in AskLilaCategory.allCases {
+            let key = usageKeyPrefix + category.rawValue
+            let maxUsageForCategory = maxUsage[category] ?? 0
+            defaults.set(maxUsageForCategory, forKey: key)
+        }
+        
+        print("🚫 Trial forcefully expired: sneak peek ended and all usage quotas reached")
+    }
+    
+   
+    
+    // Helper to check if any category has remaining uses
+    func hasAnyRemainingUses() -> Bool {
+        for category in AskLilaCategory.allCases {
+            if remainingUses(for: category) > 0 {
+                return true
+            }
+        }
+        return false
+    }
+    
+    // Debug method to print the current trial status
+    func printTrialStatus() {
+        let now = Date()
+        print("📊 TRIAL STATUS REPORT:")
+        print("🧪 Current time: \(now)")
+        
+        if let start = trialStartDate {
+            print("📅 Trial started: \(start)")
+            if let end = trialEndDate {
+                print("📅 Trial ends: \(end)")
+                print("⏳ In sneak peek: \(now < end)")
+            } else {
+                print("⚠️ Trial end date is nil")
+            }
+        } else {
+            print("⚠️ Trial start date is nil")
+        }
+        
+        // Print remaining uses for each category
+        print("🔢 REMAINING USES:")
+        for category in AskLilaCategory.allCases {
+            let remaining = remainingUses(for: category)
+            let max = maxUsage[category] ?? 0
+            print("- \(category.rawValue): \(remaining)/\(max)")
+        }
+        
+        print("📱 Is trial active: \(isTrialActive())")
+    }
+}
+
+// MARK: - AccessManager Extension
+extension AccessManager {
+    
+    // Add a method to check if access is truly expired
+    func refreshSubscriptionStatus() {
+        // First check for paid subscriptions
+        // This would typically involve checking with StoreKit
+        // For simplicity in this fix, we'll focus on the trial logic
+        
+        let trialManager = TrialUsageManager.shared
+        
+        // Get accurate trial status
+        let isInSneakPeek = trialManager.isInSneakPeekPeriod
+        let hasRemainingUses = trialManager.hasAnyRemainingUses()
+        
+        // Update subscription level based on accurate status
+        if isInSneakPeek || hasRemainingUses {
+            updateLevel(to: .trial)
+        } else {
+            updateLevel(to: .trialExpired)
+        }
+        
+        print("🔄 Subscription level after refresh: \(currentLevel)")
+    }
+    
+    // Add a debug method
+    func printAccessStatus() {
+        print("🔐 ACCESS STATUS REPORT:")
+        print("📱 Current level: \(currentLevel)")
+        
+        // Print access status for each category
+        print("🔑 ACCESS BY CATEGORY:")
+        for category in AskLilaCategory.allCases {
+            let hasAccess = canUse(category)
+            let remaining = remainingUses(for: category)
+            print("- \(category.rawValue): \(hasAccess ? "✅" : "🚫") \(remaining != nil ? "(\(remaining!) left)" : "")")
+        }
     }
 }

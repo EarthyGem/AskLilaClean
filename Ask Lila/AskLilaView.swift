@@ -153,7 +153,7 @@ class MyAgentChatController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
+        fixTrialStatus()
         // 🧪 Simulate expired 24-hour trial
         let expiredDate = Calendar.current.date(byAdding: .hour, value: -25, to: Date())!
         UserDefaults.standard.set(expiredDate, forKey: "trialStartDate")
@@ -401,6 +401,9 @@ class MyAgentChatController: UIViewController {
         case .premium:
             print("💫 Showing Premium Access Banner")
             banner.configure(for: .premium)
+        case .trialExpired:
+            print("💫 Showing Trail Expired Banner")
+            banner.configure(for: .trialExpired)
         }
 
         trialBannerView = banner
@@ -761,19 +764,7 @@ class MyAgentChatController: UIViewController {
 
     // MARK: - Keyboard Handling
    
-    func topAspects(chartCake: ChartCake,
-        to planet: CelestialObject,
-        in aspectsScores: [CelestialAspect: Double],
-        limit: Int = 2
-    ) -> [NatalAspectScore] {
-        let sorted = chartCake.natal
-            .filterAndFormatNatalAspects(by: planet, aspectsScores: aspectsScores)
-            .sorted { $0.value > $1.value }  // Explicit sort for clarity
-
-        return sorted.prefix(limit)
-            .map { NatalAspectScore(aspect: $0.key, score: $0.value) }
-    }
-
+  
     private func scrollToBottom() {
         guard chatTableView.numberOfSections > 0 else { return }
 
@@ -783,87 +774,7 @@ class MyAgentChatController: UIViewController {
             chatTableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
         }
     }
-    func buildUserChartProfile(from cake: ChartCake) -> UserChartProfile {
-        let natal = cake.natal
-        let aspectsScores = natal.allCelestialAspectScoresByAspect()
-
-        let strongest = cake.strongestPlanet
-        let strongestCoord = natal.planets.first { $0.body == strongest } ?? natal.sun
-        let strongestHouse = natal.houseCusps.house(of: strongestCoord).number
-        let ruledHouses = natal.houseCusps
-            .influencedCoordinatesHouses(for: strongestCoord)
-            .map { $0.number }
-            .filter { $0 != strongestHouse }
-
-        let sunHouse = natal.houseCusps.house(of: natal.sun).number
-        let moonHouse = natal.houseCusps.house(of: natal.moon).number
-        let mercury = natal.planets.first(where: { $0.body == cake.natal.mercury.body })!
-        let mercuryHouse = natal.houseCusps.house(of: mercury).number
-
-        let ascSign = natal.ascendantCoordinate.sign
-        let ascRulers = natal.houseCusps.customRulersForAllCusps()
-            .filter { $0.key.number == 1 }
-            .flatMap { $0.value }
-
-        let ascRulerCoordinates: [Coordinate] = ascRulers.compactMap { ruler in
-            natal.planets.first(where: { $0.body == ruler })
-        }
-
-        let ascRulerHouses: [Int] = ascRulerCoordinates.map { natal.houseCusps.house(of: $0).number }
-        let ascRulerSigns: [Zodiac] = ascRulerCoordinates.map { $0.sign }
-
-        let ascRulerAspects: [NatalAspectScore] = ascRulers.flatMap {
-            topAspects(chartCake: cake, to: $0, in: aspectsScores)
-        }
-
-        let sunPower = cake.planetScores[natal.sun.body] ?? 0.0
-        let moonPower = cake.planetScores[natal.moon.body] ?? 0.0
-        let ascendantPower = cake.planetScores[natal.ascendantCoordinate.body] ?? 0.0
-        let ascendantRulerPowers = ascRulers.map { cake.planetScores[$0] ?? 0.0 }
-
-        return UserChartProfile(
-            name: cake.name ?? "Unnamed",
-            birthDate: natal.birthDate,
-            sex: cake.sex,
-
-            strongestPlanet: strongest,
-            strongestPlanetSign: cake.strongestPlanetSignSN,
-            strongestPlanetHouse: strongestHouse,
-            strongestPlanetRuledHouses: ruledHouses,
-
-            sunSign: natal.sun.sign,
-            sunHouse: sunHouse,
-            sunPower: sunPower,
-            topAspectsToSun: topAspects(chartCake: cake, to: natal.sun.body, in: aspectsScores),
-
-            moonSign: natal.moon.sign,
-            moonHouse: moonHouse,
-            moonPower: moonPower,
-            topAspectsToMoon: topAspects(chartCake: cake, to: natal.moon.body, in: aspectsScores),
-
-            ascendantSign: ascSign,
-            ascendantPower: ascendantPower,
-            topAspectsToAscendant: topAspects(chartCake: cake, to: natal.ascendantCoordinate.body, in: aspectsScores),
-
-            mercurySign: mercury.sign,
-            mercuryHouse: mercuryHouse,
-
-            ascendantRulerSigns: ascRulerSigns,
-            ascendantRulers: ascRulers,
-            ascendantRulerHouses: ascRulerHouses,
-            ascendantRulerPowers: ascendantRulerPowers,
-            topAspectsToAscendantRulers: ascRulerAspects,
-
-            dominantHouseScores: cake.houseScoresSN,
-            dominantSignScores: cake.signScoresSN,
-            dominantPlanetScores: cake.planetScoresSN,
-
-            mostHarmoniousPlanet: cake.mostHarmoniousPlanetSN,
-            mostDiscordantPlanet: cake.mostDiscordantPlanetSN,
-            topAspectsToStrongestPlanet: topAspects(chartCake: cake, to: strongest, in: aspectsScores)
-        )
-    }
-
+   
 
     @objc private func showStatsTapped() {
         guard let chart = chartCake else {
@@ -872,7 +783,7 @@ class MyAgentChatController: UIViewController {
         }
 
         // 🌱 Step 1: Build the full chart profile (the input for all soul work)
-        let fullProfile = buildUserChartProfile(from: chart)
+        let fullProfile = chart.buildUserChartProfile()
 
         // 🌿 Step 2: Initialize the chat and pass in this core profile
         let soulChatVC = SoulChatViewController()
@@ -1596,6 +1507,44 @@ extension MyAgentChatController: UITableViewDelegate {
                 print("Unexpected error: \(error)")
             }
         }
+    }
+    
+    
+    func fixTrialStatus() {
+        // Debug current state before changes
+        print("📊 BEFORE FIX:")
+        TrialUsageManager.shared.printTrialStatus()
+        AccessManager.shared.printAccessStatus()
+        
+        // The issue: User can be expired in UI but still have trial functionality
+        // We need to make sure both UI and functionality match
+        
+        // Get the accurate trial status
+        let isInSneakPeek = TrialUsageManager.shared.isInSneakPeekPeriod
+        let hasRemainingUses = TrialUsageManager.shared.hasAnyRemainingUses()
+        
+        // If our UI shows "Sneak peek has ended" but we still have trial access, fix it
+        if !isInSneakPeek && hasRemainingUses && hasDismissedTrialBanner {
+            // User has seen the expired banner but still has trial uses - expire them all
+            TrialUsageManager.shared.forceExpireTrial()
+            AccessManager.shared.refreshSubscriptionStatus()
+            
+            print("🛠️ Applied trial expiration fix")
+        }
+        // If our UI and functionality don't match at all, refresh everything
+        else if (AccessManager.shared.currentLevel == .trial && !isInSneakPeek && !hasRemainingUses) ||
+                (AccessManager.shared.currentLevel == .trialExpired && (isInSneakPeek || hasRemainingUses)) {
+            AccessManager.shared.refreshSubscriptionStatus()
+            print("🛠️ Applied subscription level refresh")
+        }
+        
+        // Debug state after changes
+        print("📊 AFTER FIX:")
+        TrialUsageManager.shared.printTrialStatus()
+        AccessManager.shared.printAccessStatus()
+        
+        // Make sure the UI matches the model state
+        updateTrialBanner()
     }
 }
 
